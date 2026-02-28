@@ -1,0 +1,246 @@
+---
+title: GitHub Flavored Markdown
+description: Full GFM support including alerts, tables, footnotes, and auto-linked headings
+---
+
+CodeInk supports GitHub Flavored Markdown (GFM) extensions, giving you access to alerts, tables, footnotes, task lists, and automatic heading IDs.
+
+## GitHub-Style Alerts
+
+Create styled callout boxes using the GitHub alert syntax:
+
+### Alert Types
+
+<Tabs>
+  <Tab title="NOTE">
+    ```markdown
+    > [!NOTE]
+    > Useful information that users should know, even when skimming content.
+    ```
+    
+    **Rendered as:**
+    > [!NOTE]
+    > Useful information that users should know, even when skimming content.
+  </Tab>
+  
+  <Tab title="TIP">
+    ```markdown
+    > [!TIP]
+    > Helpful advice for doing things better or more easily.
+    ```
+    
+    **Rendered as:**
+    > [!TIP]
+    > Helpful advice for doing things better or more easily.
+  </Tab>
+  
+  <Tab title="IMPORTANT">
+    ```markdown
+    > [!IMPORTANT]
+    > Key information users need to know to achieve their goal.
+    ```
+    
+    **Rendered as:**
+    > [!IMPORTANT]
+    > Key information users need to know to achieve their goal.
+  </Tab>
+  
+  <Tab title="WARNING">
+    ```markdown
+    > [!WARNING]
+    > Urgent info that needs immediate user attention to avoid problems.
+    ```
+    
+    **Rendered as:**
+    > [!WARNING]
+    > Urgent info that needs immediate user attention to avoid problems.
+  </Tab>
+  
+  <Tab title="CAUTION">
+    ```markdown
+    > [!CAUTION]
+    > Advises about risks or negative outcomes of certain actions.
+    ```
+    
+    **Rendered as:**
+    > [!CAUTION]
+    > Advises about risks or negative outcomes of certain actions.
+  </Tab>
+</Tabs>
+
+### Implementation
+
+Alerts are rendered via the `marked-alert` extension:
+
+```typescript src/lib/markdown.ts
+import markedAlert from "marked-alert"
+
+marked.use(markedAlert())
+```
+
+<Info>
+  Alert syntax is identical to GitHub's markdown rendering, ensuring compatibility with your existing documentation.
+</Info>
+
+## Tables
+
+Create tables using pipe syntax:
+
+```markdown
+| Syntax      | Description | Test Text     |
+| ----------- | ----------- | ------------- |
+| Header      | Title       | Here's this   |
+| Paragraph   | Text        | And more      |
+```
+
+**Rendered as:**
+
+| Syntax      | Description | Test Text     |
+| ----------- | ----------- | ------------- |
+| Header      | Title       | Here's this   |
+| Paragraph   | Text        | And more      |
+
+### Alignment
+
+Control column alignment with colons:
+
+```markdown
+| Left aligned | Center aligned | Right aligned |
+| :----------- | :------------: | ------------: |
+| Left         | Center         | Right         |
+| Text         | Text           | Text          |
+```
+
+**Rendered as:**
+
+| Left aligned | Center aligned | Right aligned |
+| :----------- | :------------: | ------------: |
+| Left         | Center         | Right         |
+| Text         | Text           | Text          |
+
+## Footnotes
+
+Add footnotes to provide additional context without cluttering the main text:
+
+```markdown
+Here's a sentence with a footnote.[^1]
+
+Another sentence with a footnote.[^2]
+
+[^1]: This is the first footnote.
+[^2]: This is the second footnote with more details.
+```
+
+**Rendered as:**
+
+Here's a sentence with a footnote.[^1]
+
+Another sentence with a footnote.[^2]
+
+[^1]: This is the first footnote.
+[^2]: This is the second footnote with more details.
+
+### Implementation
+
+Footnotes are rendered via the `marked-footnote` extension:
+
+```typescript src/lib/markdown.ts
+import markedFootnote from "marked-footnote"
+
+marked.use(markedFootnote())
+```
+
+<Tip>
+  Footnotes are automatically numbered and linked. Click a footnote reference to jump to its definition.
+</Tip>
+
+## Task Lists
+
+Create interactive checkboxes for task tracking:
+
+```markdown
+- [x] Completed task
+- [ ] Uncompleted task
+- [ ] Another task to do
+```
+
+**Rendered as:**
+
+- [x] Completed task
+- [ ] Uncompleted task
+- [ ] Another task to do
+
+<Note>
+  Task lists in CodeInk are visual only. Checking/unchecking boxes requires editing the markdown source.
+</Note>
+
+## Auto-Linked Headings
+
+All headings automatically receive IDs based on their text content, making them linkable:
+
+```markdown
+## My Awesome Heading
+
+This heading gets the ID: #my-awesome-heading
+```
+
+### Implementation
+
+Heading IDs are generated via `marked-gfm-heading-id`:
+
+```typescript src/lib/markdown.ts
+import { gfmHeadingId } from "marked-gfm-heading-id"
+
+marked.use(gfmHeadingId())
+```
+
+<Tip>
+  Use heading IDs to create internal document links: `[Jump to section](#my-awesome-heading)`
+</Tip>
+
+## Strikethrough
+
+Strike through text using double tildes:
+
+```markdown
+~~This text is struck through~~
+```
+
+**Rendered as:**
+
+~~This text is struck through~~
+
+## Automatic URL Linking
+
+URLs are automatically converted to clickable links:
+
+```markdown
+Visit https://codeink.app for more info
+```
+
+**Rendered as:**
+
+Visit https://codeink.app for more info
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use alerts strategically" icon="triangle-exclamation">
+    Don't overuse alerts. Reserve them for truly important information.
+  </Card>
+  <Card title="Keep tables simple" icon="table">
+    Complex tables can be hard to read. Consider breaking them into multiple tables.
+  </Card>
+  <Card title="Number footnotes logically" icon="1">
+    Use sequential numbering for footnotes to maintain readability.
+  </Card>
+  <Card title="Test task lists" icon="check">
+    Preview your task lists to ensure proper formatting before exporting.
+  </Card>
+</CardGroup>
+
+## Related Features
+
+- [Markdown Linting](/features/markdown-linting) - Validate GFM syntax
+- [Syntax Highlighting](/features/syntax-highlighting) - Code block highlighting
+- [CodeMirror Editor](/features/editor) - Main editing interface

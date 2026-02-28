@@ -1,0 +1,167 @@
+---
+title: Theme Customization
+description: Switch between light and dark themes for comfortable editing in any environment
+---
+
+CodeInk offers light and dark themes that adapt to your preferences. Switch themes anytime with a single click.
+
+## Theme Toggle
+
+The theme toggle button is located in the header toolbar, next to the GitHub icon.
+
+<Steps>
+  <Step title="Locate the theme toggle">
+    Look for the sun/moon icon in the top-right corner of the CodeInk interface.
+  </Step>
+  
+  <Step title="Click to switch themes">
+    Click the theme toggle button to switch between light and dark modes.
+    
+    The theme changes instantly without page reload.
+  </Step>
+  
+  <Step title="Persistent preference">
+    Your theme preference is saved to `localStorage` and persists across sessions.
+  </Step>
+</Steps>
+
+## Available Themes
+
+<CardGroup cols={2}>
+  <Card title="Light Theme" icon="sun">
+    A clean, bright theme optimized for well-lit environments. Features high contrast for readability.
+  </Card>
+  <Card title="Dark Theme" icon="moon">
+    A comfortable dark theme that reduces eye strain in low-light conditions. The default theme.
+  </Card>
+</CardGroup>
+
+## Theme Implementation
+
+The theme system is controlled by a `data-theme` attribute on the document root:
+
+```typescript src/components/ThemeToggle.astro
+const toggleTheme = () => {
+  const nextTheme: Theme = getCurrentTheme() === "dark" ? "light" : "dark"
+  document.documentElement.setAttribute("data-theme", nextTheme)
+  
+  try {
+    localStorage.setItem("codeink-theme", nextTheme)
+  } catch {}
+  
+  window.dispatchEvent(
+    new CustomEvent("codeink-theme-change", { 
+      detail: { theme: nextTheme } 
+    })
+  )
+}
+```
+
+### Theme Storage
+
+Your theme preference is stored in localStorage under the key `codeink-theme`:
+
+```typescript
+const storageKey = "codeink-theme"
+localStorage.setItem(storageKey, nextTheme)
+```
+
+<Note>
+  If localStorage is unavailable (e.g., in private browsing mode), the theme resets to dark mode on page reload.
+</Note>
+
+## Theme Events
+
+CodeInk dispatches a custom event when the theme changes:
+
+```typescript
+window.addEventListener("codeink-theme-change", (e) => {
+  const theme = e.detail.theme // "light" or "dark"
+  console.log(`Theme changed to: ${theme}`)
+})
+```
+
+### Components That React to Theme Changes
+
+Several components automatically update when the theme changes:
+
+1. **CodeMirror Editor** - Switches between light and dark editor themes
+2. **Mermaid Diagrams** - Re-renders with theme-appropriate colors
+3. **Syntax Highlighting** - Switches between One Dark Pro (dark) and GitHub Light (light)
+
+```typescript src/scripts/editor.ts
+window.addEventListener("codeink-theme-change", (e: CustomEvent) => {
+  const nextTheme = e.detail?.theme === "light" ? "light" : "dark"
+  setEditorTheme(nextTheme)
+  
+  // Force Mermaid diagrams to re-render with new theme
+  const mermaidNodes = previewTarget.querySelectorAll(".mermaid[data-processed]")
+  for (const node of Array.from(mermaidNodes)) {
+    node.removeAttribute("data-processed")
+  }
+  
+  window.dispatchEvent(new Event("mermaid-rerender"))
+  renderPreview(getEditorContent(), previewTarget)
+})
+```
+
+## Default Theme
+
+CodeInk defaults to **dark mode** on first visit. The initial theme is determined by:
+
+1. **localStorage** - If a theme preference exists, use it
+2. **System preference** - Detect OS theme preference (if available)
+3. **Default** - Fall back to dark mode
+
+<Info>
+  The dark theme is optimized for extended coding sessions and reduces eye strain in low-light environments.
+</Info>
+
+## Theme-Aware Syntax Highlighting
+
+Syntax highlighting themes automatically match your selected CodeInk theme:
+
+| CodeInk Theme | Editor Theme | Syntax Theme |
+|---------------|--------------|--------------|
+| Dark | One Dark Pro | One Dark Pro |
+| Light | Light (CodeMirror default) | GitHub Light |
+
+<Tip>
+  The theme switch is instant and requires no page reload, preserving your editor content and cursor position.
+</Tip>
+
+## Accessibility
+
+The theme toggle button includes proper ARIA labels:
+
+- **Dark mode active**: "Switch to light theme"
+- **Light mode active**: "Switch to dark theme"
+
+```typescript
+btn.setAttribute("aria-label", 
+  isDark ? "Switch to light theme" : "Switch to dark theme"
+)
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Match your environment" icon="lightbulb">
+    Use light theme in bright rooms and dark theme in dim lighting.
+  </Card>
+  <Card title="Try both themes" icon="palette">
+    Experiment with both themes to find which you prefer for different tasks.
+  </Card>
+  <Card title="Reduce eye strain" icon="eye">
+    Dark theme can reduce eye fatigue during long editing sessions.
+  </Card>
+  <Card title="Preview diagrams" icon="diagram-project">
+    Check Mermaid diagrams in both themes to ensure proper contrast.
+  </Card>
+</CardGroup>
+
+## Related Features
+
+- [Editor](/features/editor) - CodeMirror editor with theme support
+- [Syntax Highlighting](/features/syntax-highlighting) - Theme-aware code highlighting
+- [Mermaid Diagrams](/features/mermaid-diagrams) - Theme-aware diagram rendering

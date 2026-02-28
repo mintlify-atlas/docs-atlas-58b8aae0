@@ -37,7 +37,8 @@
               "features/syntax-highlighting",
               "features/mermaid-diagrams",
               "features/katex-math",
-              "features/markdown-linting"
+              "features/markdown-linting",
+              "features/github-flavored-markdown"
             ]
           },
           {
@@ -46,7 +47,8 @@
               "guides/document-management",
               "guides/view-modes",
               "guides/keyboard-shortcuts",
-              "guides/exporting"
+              "guides/exporting",
+              "guides/theme-customization"
             ]
           },
           {
