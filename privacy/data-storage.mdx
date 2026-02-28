@@ -1,0 +1,239 @@
+---
+title: 'Data Storage Architecture'
+description: 'How CodeInk stores your documents locally using IndexedDB'
+icon: 'database'
+---
+
+## Overview
+
+CodeInk uses **IndexedDB** to store all your documents entirely in your browser. No data is ever transmitted to external servers or stored in the cloud. This architecture ensures complete privacy and data ownership.
+
+<Info>
+All documents remain on your device. CodeInk has zero access to your content.
+</Info>
+
+## IndexedDB Implementation
+
+CodeInk implements a simple, efficient storage layer using the browser's native IndexedDB API.
+
+### Database Structure
+
+The storage system consists of:
+
+- **Database Name**: `codeink-docs`
+- **Object Store**: `documents`
+- **Key Path**: `id` (unique document identifier)
+- **Database Version**: 1
+
+### Document Schema
+
+Each document stored in IndexedDB contains the following fields:
+
+```typescript
+interface Document {
+  id: string           // Unique identifier
+  title: string        // Auto-generated from first heading
+  customTitle?: string // User-defined title (optional)
+  content: string      // Full markdown content
+  createdAt: number    // Unix timestamp (ms)
+  updatedAt: number    // Unix timestamp (ms)
+}
+```
+
+<Note>
+Documents are automatically sorted by `updatedAt` timestamp in descending order, showing your most recently edited documents first.
+</Note>
+
+## Storage Operations
+
+CodeInk's database layer (`src/lib/db.ts`) provides four core operations:
+
+### Read Operations
+
+#### Get All Documents
+
+```typescript
+getAllDocs(): Promise<Document[]>
+```
+
+Retrieves all documents from storage, automatically sorted by last update time.
+
+#### Get Single Document
+
+```typescript
+getDoc(id: string): Promise<Document | null>
+```
+
+Fetches a specific document by its ID. Returns `null` if not found.
+
+### Write Operations
+
+#### Save Document
+
+```typescript
+saveDoc(doc: Document): Promise<void>
+```
+
+Creates a new document or updates an existing one. Uses the document's `id` field to determine whether to insert or update.
+
+#### Delete Document
+
+```typescript
+deleteDoc(id: string): Promise<void>
+```
+
+Permanently removes a document from storage.
+
+<Warning>
+Deleting a document is permanent. There is no server-side backup or recovery mechanism.
+</Warning>
+
+## What Data is Stored
+
+### Stored Locally in IndexedDB
+
+- Document content (markdown text)
+- Document titles (auto-generated and custom)
+- Creation and modification timestamps
+- Unique document identifiers
+
+### NOT Stored Anywhere
+
+- User accounts or authentication data (CodeInk has no accounts)
+- Analytics or usage tracking
+- IP addresses or device information
+- Cookies for tracking purposes
+- Any data on external servers
+
+<Info>
+CodeInk is 100% client-side. The application code runs entirely in your browser, and your documents never leave your device unless you explicitly export them.
+</Info>
+
+## Storage Limits
+
+IndexedDB storage limits vary by browser:
+
+| Browser | Storage Limit |
+|---------|---------------|
+| Chrome/Edge | Up to 80% of total disk space (shared across all origins) |
+| Firefox | Up to 2GB per origin (prompts user if more needed) |
+| Safari | Up to 1GB per origin (prompts user after 50MB) |
+
+<Note>
+For typical markdown documents, even large codebases with hundreds of documents will use only a few megabytes of storage.
+</Note>
+
+## Browser Support
+
+IndexedDB is supported by all modern browsers:
+
+- Chrome 24+
+- Firefox 16+
+- Safari 10+
+- Edge (all versions)
+- Opera 15+
+
+## Data Persistence
+
+IndexedDB data persists across browser sessions and even system restarts. However, data can be lost in certain scenarios:
+
+<Warning>
+**Data Loss Scenarios**
+
+- Clearing browser data/cache manually
+- Using incognito/private browsing mode
+- Browser storage eviction (rare, only when disk space is critically low)
+- Uninstalling the browser without data export
+</Warning>
+
+### Backup Recommendations
+
+Since data is stored locally:
+
+1. **Export important documents** regularly using the export feature
+2. **Use browser profiles** to separate work and personal documents
+3. **Consider external backups** for critical content
+4. **Avoid incognito mode** for long-term document storage
+
+## Privacy Guarantees
+
+CodeInk's architecture provides strong privacy guarantees:
+
+### What We Can't See
+
+- Your document content
+- Document titles or metadata
+- How many documents you create
+- How often you use CodeInk
+- Any information about you or your device
+
+### Same-Origin Policy
+
+IndexedDB data is isolated by origin (`https://codeink.app`). This means:
+
+- Other websites cannot access your CodeInk documents
+- CodeInk cannot access data from other websites
+- Even subdomains cannot access the data without explicit permission
+
+<Info>
+The browser's same-origin policy ensures that your data remains isolated and secure from other web applications.
+</Info>
+
+## Open Source Verification
+
+CodeInk is fully open source, allowing you to verify the privacy claims:
+
+- **Source Code**: Available on GitHub
+- **Database Implementation**: `src/lib/db.ts` contains the complete storage logic (64 lines)
+- **No Network Requests**: Review the codebase to confirm no data transmission
+- **No Tracking Libraries**: Check `package.json` for dependencies
+
+### Key Dependencies
+
+From `package.json`, CodeInk uses:
+
+- `@codemirror/*` - Editor component (no network activity)
+- `marked` - Markdown parsing (client-side only)
+- `mermaid` - Diagram rendering (client-side only)
+- `katex` - Math rendering (client-side only)
+- `shiki` - Syntax highlighting (client-side only)
+
+**No analytics, tracking, or data collection libraries are included.**
+
+## Technical Architecture
+
+The storage layer uses a promise-based wrapper around IndexedDB:
+
+```typescript
+// Simplified implementation overview
+function openDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1)
+    req.onupgradeneeded = () => {
+      req.result.createObjectStore(STORE_NAME, { keyPath: "id" })
+    }
+  })
+}
+```
+
+Each operation:
+1. Opens the database connection
+2. Creates a transaction (readonly or readwrite)
+3. Performs the operation on the object store
+4. Closes the connection when complete
+
+This design ensures:
+- **Atomicity**: Operations succeed or fail completely
+- **Consistency**: Data remains in a valid state
+- **Error handling**: Failed operations are properly caught and reported
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Offline Support" icon="wifi-slash" href="/privacy/offline-support">
+    Learn how CodeInk works without an internet connection
+  </Card>
+  <Card title="Export Documents" icon="download" href="/guides/exporting">
+    Back up your documents by exporting to markdown
+  </Card>
+</CardGroup>

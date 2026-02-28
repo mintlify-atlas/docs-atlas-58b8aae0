@@ -1,28 +1,14 @@
-# Mintlify Starter Kit
+# CodeInk Documentation
 
-Use the starter kit to get your docs deployed and ready to customize.
+This repository contains the documentation for [CodeInk](https://github.com/jorgefl8/CodeInk), a polished markdown editor with real-time preview, syntax highlighting, diagrams and math.
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+## Documentation Contents
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
-
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
-
-## AI-assisted writing
-
-Set up your AI coding tool to work with Mintlify:
-
-```bash
-npx skills add https://mintlify.com/docs
-```
-
-This command installs Mintlify's documentation skill for your configured AI tools like Claude Code, Cursor, Windsurf, and others. The skill includes component reference, writing standards, and workflow guidance.
-
-See the [AI tools guides](/ai-tools) for tool-specific setup.
+- **Get Started**: Introduction and quickstart guide
+- **Features**: Editor, syntax highlighting, Mermaid diagrams, KaTeX math, markdown linting
+- **Guides**: Document management, view modes, keyboard shortcuts, exporting
+- **Privacy & Security**: Data storage and offline support
+- **Development**: Setup, architecture, contributing, and code structure
 
 ## Development
 

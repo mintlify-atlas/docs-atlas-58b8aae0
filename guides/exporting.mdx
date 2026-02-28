@@ -1,0 +1,358 @@
+---
+title: Exporting Documents
+description: Export your markdown documents to .md files for use in other applications
+---
+
+CodeInk allows you to export any document as a standard Markdown (.md) file that works with any markdown-compatible application.
+
+## Quick Export
+
+Export your current document with a single click:
+
+<Steps>
+  <Step title="Open Document">
+    Navigate to the document you want to export in the editor
+  </Step>
+  <Step title="Click Export Button">
+    Click the **MD** button (with download icon) in the header toolbar
+  </Step>
+  <Step title="Save File">
+    Your browser's download dialog appears - choose where to save the file
+  </Step>
+</Steps>
+
+<Tip>
+  The export button is located in the header toolbar, right next to the view mode buttons.
+</Tip>
+
+## Export Implementation
+
+Here's how CodeInk exports documents:
+
+```typescript
+export function setupMarkdownExport(signal: AbortSignal) {
+  const exportMdBtn = document.getElementById("export-md")
+  if (!exportMdBtn) return
+
+  exportMdBtn.addEventListener("click", () => {
+    // Get current editor content
+    const content = getEditorContent()
+    
+    // Extract title from first H1 heading
+    const titleMatch = content.match(/^#\s+(.+)$/m)
+    const title = titleMatch ? titleMatch[1].trim() : "document"
+    
+    // Sanitize title for filename
+    const sanitized = title
+      .replace(/[^a-z0-9\u00e1\u00e9\u00ed\u00f3\u00fa\u00fc\u00f1\s-]/gi, "")
+      .replace(/\s+/g, "-")
+    const filename = `${sanitized}.md`
+
+    // Create and download file
+    const blob = new Blob([content], { type: "text/markdown;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }, { signal })
+}
+```
+
+## Filename Generation
+
+CodeInk automatically generates smart filenames based on your document content:
+
+### Title Extraction
+
+The filename is extracted from the first H1 heading in your document:
+
+```markdown
+# My Project Documentation
+
+Content here...
+```
+
+**Exported as**: `My-Project-Documentation.md`
+
+<Note>
+  If your document doesn't have an H1 heading, the file will be named `document.md`.
+</Note>
+
+### Sanitization Rules
+
+Filenames are sanitized to ensure compatibility:
+
+1. **Allowed Characters**:
+   - Letters: `a-z`, `A-Z`
+   - Numbers: `0-9`
+   - Accented characters: `á`, `é`, `í`, `ó`, `ú`, `ü`, `ñ`
+   - Hyphens: `-`
+
+2. **Removed Characters**:
+   - Special characters: `@`, `#`, `$`, `%`, etc.
+   - Punctuation: `:`, `;`, `?`, `!`, etc.
+   - Symbols: `&`, `*`, `+`, `=`, etc.
+
+3. **Space Conversion**:
+   - All spaces become hyphens: ` ` → `-`
+   - Multiple spaces collapse to single hyphen: `  ` → `-`
+
+### Example Transformations
+
+| Document Title | Exported Filename |
+|----------------|-------------------|
+| `Getting Started Guide` | `Getting-Started-Guide.md` |
+| `API: Documentation v2.0` | `API-Documentation-v20.md` |
+| `How to use CodeInk?` | `How-to-use-CodeInk.md` |
+| `Feature #123: Export` | `Feature-123-Export.md` |
+| (no heading) | `document.md` |
+
+## Export Format
+
+### What's Exported
+
+The exported file contains the **complete raw markdown** from the editor, including:
+
+<Check>
+  - All headings and text
+  - Code blocks with language tags
+  - Lists (ordered and unordered)
+  - Links and images
+  - Tables
+  - Blockquotes
+  - HTML comments
+  - Mermaid diagram code
+  - KaTeX math expressions
+  - Horizontal rules
+  - Task lists
+</Check>
+
+### What's Not Exported
+
+<Warning>
+  The export is **plain markdown only**. These items are not included:
+  - Rendered HTML
+  - Custom CSS styling
+  - CodeInk metadata (document ID, timestamps, custom title)
+  - Preview rendering state
+</Warning>
+
+### File Characteristics
+
+- **Format**: Plain text markdown
+- **Encoding**: UTF-8
+- **Line Endings**: Preserved from editor (typically LF on Unix-like systems, CRLF on Windows)
+- **MIME Type**: `text/markdown;charset=utf-8`
+
+## Using Exported Files
+
+Your exported markdown files work with any markdown-compatible application:
+
+<CardGroup cols={2}>
+  <Card title="Version Control" icon="git">
+    Commit to Git repositories (GitHub, GitLab, Bitbucket)
+  </Card>
+  <Card title="Static Site Generators" icon="file-code">
+    Use with Jekyll, Hugo, Gatsby, Next.js, etc.
+  </Card>
+  <Card title="Documentation Tools" icon="book">
+    Import into Docusaurus, MkDocs, GitBook, Mintlify
+  </Card>
+  <Card title="Note-Taking Apps" icon="note-sticky">
+    Open in Obsidian, Notion, Bear, Typora, or any markdown editor
+  </Card>
+</CardGroup>
+
+## Browser Download Behavior
+
+When you click the export button, your browser handles the download:
+
+### Chrome / Edge
+- File downloads to your default Downloads folder
+- Notification appears at bottom of browser
+- Click notification to open file or folder
+
+### Firefox
+- Dialog appears asking where to save
+- Option to remember choice for `.md` files
+- Downloads to chosen location
+
+### Safari
+- File downloads to Downloads folder
+- Download icon appears in toolbar
+- Click to view downloaded files
+
+<Tip>
+  Configure your browser's download settings to choose where files are saved or to always prompt for location.
+</Tip>
+
+## Export Button UI
+
+The export button is styled consistently with other toolbar buttons:
+
+```astro
+<button 
+  id="export-md" 
+  type="button" 
+  aria-label="Export as Markdown" 
+  title="Export as Markdown"
+>
+  <svg><!-- download icon --></svg>
+  <span class="hidden sm:inline">MD</span>
+</button>
+```
+
+### Button Features
+
+- **Icon**: Download arrow pointing down
+- **Label**: "MD" (visible on desktop)
+- **Tooltip**: "Export as Markdown" on hover
+- **Responsive**: Icon-only on mobile
+
+## Technical Details
+
+### Blob Creation
+
+CodeInk uses the Blob API to create the file:
+
+```typescript
+const blob = new Blob([content], { 
+  type: "text/markdown;charset=utf-8" 
+})
+```
+
+This creates a binary large object containing your markdown text with proper encoding.
+
+### Object URL
+
+A temporary URL is created for the download:
+
+```typescript
+const url = URL.createObjectURL(blob)
+```
+
+This URL is valid only for the current page session and is revoked after download to free memory:
+
+```typescript
+URL.revokeObjectURL(url)
+```
+
+### Download Trigger
+
+The download is triggered by creating a temporary link element:
+
+```typescript
+const link = document.createElement("a")
+link.href = url
+link.download = filename
+document.body.appendChild(link)
+link.click()
+document.body.removeChild(link)
+```
+
+This programmatic approach works in all modern browsers without user interaction beyond the initial button click.
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use Descriptive H1 Headings" icon="heading">
+    Start your document with a clear H1 heading to generate a meaningful filename.
+  </Card>
+  <Card title="Export Before Major Edits" icon="floppy-disk">
+    Create a backup by exporting before making significant changes to your document.
+  </Card>
+  <Card title="Organize Downloads" icon="folder">
+    Create folders for exported documents to keep them organized by project or topic.
+  </Card>
+  <Card title="Use Version Control" icon="code-branch">
+    For important documents, export to a Git repository to track changes over time.
+  </Card>
+</CardGroup>
+
+## Common Use Cases
+
+### 1. Backup Important Work
+
+Export documents regularly to create backups outside of your browser:
+
+<Steps>
+  <Step title="Export Document">
+    Click the MD button to download your document
+  </Step>
+  <Step title="Save to Cloud Storage">
+    Move the exported file to Dropbox, Google Drive, or OneDrive
+  </Step>
+  <Step title="Continue Editing">
+    Keep working in CodeInk with peace of mind
+  </Step>
+</Steps>
+
+### 2. Share with Collaborators
+
+Send markdown files to team members who use different tools:
+
+- Export the document
+- Share via email, Slack, or other messaging
+- Recipients can open in their preferred markdown editor
+
+### 3. Publish to GitHub
+
+Export documents for use in GitHub repositories:
+
+```bash
+# After exporting
+mv ~/Downloads/API-Documentation.md ./docs/
+git add docs/API-Documentation.md
+git commit -m "Add API documentation"
+git push
+```
+
+### 4. Import to CMS
+
+Many content management systems accept markdown:
+
+- Export from CodeInk
+- Upload to your CMS or static site generator
+- Publish to your website
+
+## Limitations
+
+<Warning>
+  **No Batch Export**: CodeInk exports one document at a time. To export multiple documents, visit each document and click the export button individually.
+</Warning>
+
+<Warning>
+  **No Auto-Export**: Export is manual only. If you need automatic backups, consider using a script to periodically export from IndexedDB.
+</Warning>
+
+## Future Export Options
+
+While CodeInk currently only exports to markdown, here are some potential future export formats:
+
+- **PDF**: Export rendered preview as PDF
+- **HTML**: Export as standalone HTML file
+- **DOCX**: Export to Microsoft Word format
+- **Batch Export**: Export all documents as a ZIP file
+
+<Info>
+  Want these features? Let the CodeInk team know what export formats would be most useful for your workflow!
+</Info>
+
+## Comparison with Auto-Save
+
+| Feature | Auto-Save | Export |
+|---------|-----------|--------|
+| **Location** | Browser IndexedDB | File system |
+| **Trigger** | Automatic (1s after typing) | Manual (button click) |
+| **Format** | JSON (structured data) | Plain markdown text |
+| **Portability** | Browser-specific | Universal |
+| **Backup** | Limited to browser | Full control |
+| **Sharing** | Not shareable | Easy to share |
+
+<Tip>
+  Use auto-save for working drafts and export for backups, sharing, and publishing.
+</Tip>

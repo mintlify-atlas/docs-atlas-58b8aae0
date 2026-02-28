@@ -1,0 +1,459 @@
+---
+title: "Contributing Guidelines"
+description: "Learn how to contribute to CodeInk and help make it better"
+---
+
+Thank you for considering contributing to CodeInk! This guide will help you understand our development process and how to submit contributions.
+
+## Code of Conduct
+
+CodeInk is an open-source project licensed under the MIT License. We welcome contributions from everyone who wants to improve the project.
+
+<Card title="MIT License" icon="scale-balanced">
+  CodeInk is free and open-source software. You're free to use, modify, and distribute it under the terms of the MIT License.
+  
+  Copyright (c) 2026 Jorge Florentino
+</Card>
+
+## Ways to Contribute
+
+<CardGroup cols={2}>
+  <Card title="Report Bugs" icon="bug">
+    Found a bug? Open an issue on GitHub with steps to reproduce
+  </Card>
+  <Card title="Suggest Features" icon="lightbulb">
+    Have an idea? Create a feature request issue
+  </Card>
+  <Card title="Fix Issues" icon="wrench">
+    Browse open issues and submit pull requests
+  </Card>
+  <Card title="Improve Docs" icon="book">
+    Help improve documentation and guides
+  </Card>
+</CardGroup>
+
+## Getting Started
+
+<Steps>
+  <Step title="Fork the repository">
+    Fork [jorgefl8/codeink](https://github.com/jorgefl8/codeink) to your GitHub account.
+  </Step>
+
+  <Step title="Clone your fork">
+    ```bash
+    git clone https://github.com/YOUR_USERNAME/codeink.git
+    cd codeink
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    ```bash
+    bun install
+    ```
+  </Step>
+
+  <Step title="Create a branch">
+    Create a descriptive branch name:
+    
+    ```bash
+    git checkout -b fix/editor-scroll-bug
+    # or
+    git checkout -b feature/export-html
+    ```
+  </Step>
+
+  <Step title="Make your changes">
+    Follow our coding standards and test your changes locally:
+    
+    ```bash
+    bun dev
+    ```
+  </Step>
+
+  <Step title="Run type checking">
+    Ensure no TypeScript errors:
+    
+    ```bash
+    bun run lint
+    ```
+  </Step>
+</Steps>
+
+## Coding Standards
+
+### TypeScript Guidelines
+
+<Accordion title="Type Safety">
+  Always use explicit types for function parameters and return values:
+  
+  ```typescript
+  // ✅ Good
+  export function saveDoc(doc: Document): Promise<void> {
+    return withStore("readwrite", (store) => store.put(doc))
+  }
+  
+  // ❌ Bad
+  export function saveDoc(doc) {
+    return withStore("readwrite", (store) => store.put(doc))
+  }
+  ```
+</Accordion>
+
+<Accordion title="Async/Await">
+  Prefer async/await over promise chains:
+  
+  ```typescript
+  // ✅ Good
+  async function loadDocument(id: string) {
+    const doc = await getDoc(id)
+    if (!doc) return null
+    return doc.content
+  }
+  
+  // ❌ Bad
+  function loadDocument(id: string) {
+    return getDoc(id).then(doc => {
+      if (!doc) return null
+      return doc.content
+    })
+  }
+  ```
+</Accordion>
+
+<Accordion title="Naming Conventions">
+  - **Functions**: camelCase (`createEditor`, `renderPreview`)
+  - **Components**: PascalCase (`Editor.astro`, `StatusBar.astro`)
+  - **Constants**: UPPER_SNAKE_CASE (`DB_NAME`, `AUTO_SAVE_DEBOUNCE_MS`)
+  - **Interfaces**: PascalCase (`Document`, `EditorOptions`)
+</Accordion>
+
+### File Organization
+
+<CodeGroup>
+```typescript Components
+// src/components/Example.astro
+---
+import type { Props } from './types'
+
+interface Props {
+  title: string
+  description?: string
+}
+
+const { title, description } = Astro.props
+---
+
+<div class="component">
+  <h2>{title}</h2>
+  {description && <p>{description}</p>}
+</div>
+
+<style>
+  /* Scoped styles */
+</style>
+
+<script>
+  // Client-side scripts
+</script>
+```
+
+```typescript Scripts
+// src/scripts/example.ts
+import type { EditorView } from "@codemirror/view"
+
+/**
+ * Brief description of function
+ * @param view - CodeMirror editor view
+ * @returns Description of return value
+ */
+export function exampleFunction(view: EditorView): void {
+  // Implementation
+}
+```
+
+```typescript Libraries
+// src/lib/example.ts
+export interface ExampleConfig {
+  option1: string
+  option2?: number
+}
+
+export function exampleUtil(config: ExampleConfig) {
+  // Utility implementation
+}
+```
+</CodeGroup>
+
+### CSS/Styling Guidelines
+
+<Accordion title="Tailwind First">
+  Use Tailwind utility classes for styling:
+  
+  ```astro
+  <!-- ✅ Good -->
+  <button class="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
+    Click me
+  </button>
+  
+  <!-- ❌ Avoid custom CSS when Tailwind suffices -->
+  <button class="custom-button">
+    Click me
+  </button>
+  ```
+</Accordion>
+
+<Accordion title="CSS Variables">
+  Use CSS custom properties defined in `src/styles/tokens.css`:
+  
+  ```css
+  .custom-component {
+    background: var(--background);
+    color: var(--foreground);
+    border: 1px solid var(--border);
+  }
+  ```
+  
+  Available tokens:
+  - Colors: `--background`, `--foreground`, `--primary`, `--muted-foreground`
+  - Spacing: Use Tailwind classes
+  - Typography: `--font-sans`, `--font-mono`
+</Accordion>
+
+## Testing Your Changes
+
+### Manual Testing Checklist
+
+Before submitting, test the following:
+
+<Steps>
+  <Step title="Editor functionality">
+    - [ ] Editor loads and displays content
+    - [ ] Typing updates the preview
+    - [ ] Syntax highlighting works
+    - [ ] Theme switching works
+  </Step>
+
+  <Step title="Markdown rendering">
+    - [ ] Headings, lists, and formatting render correctly
+    - [ ] Code blocks have syntax highlighting
+    - [ ] Mermaid diagrams render
+    - [ ] Math expressions (KaTeX) render
+  </Step>
+
+  <Step title="Document management">
+    - [ ] Documents save automatically
+    - [ ] Documents load from URL hash
+    - [ ] Document list displays correctly
+    - [ ] Delete functionality works
+  </Step>
+
+  <Step title="Cross-browser compatibility">
+    Test in multiple browsers:
+    - [ ] Chrome/Edge
+    - [ ] Firefox
+    - [ ] Safari
+  </Step>
+
+  <Step title="Responsive design">
+    Test at different screen sizes:
+    - [ ] Desktop (1920x1080)
+    - [ ] Tablet (768x1024)
+    - [ ] Mobile (375x667)
+  </Step>
+</Steps>
+
+### Build Testing
+
+Test the production build:
+
+```bash
+bun run build
+bun run preview
+```
+
+Ensure:
+- No build errors
+- No TypeScript errors
+- All features work in production mode
+
+## Submitting Pull Requests
+
+<Steps>
+  <Step title="Commit your changes">
+    Write clear, descriptive commit messages:
+    
+    ```bash
+    git add .
+    git commit -m "fix: resolve editor scroll issue on mobile"
+    ```
+    
+    **Commit message format:**
+    - `feat:` New feature
+    - `fix:` Bug fix
+    - `docs:` Documentation changes
+    - `style:` Code style changes (formatting)
+    - `refactor:` Code refactoring
+    - `perf:` Performance improvements
+    - `test:` Adding tests
+    - `chore:` Maintenance tasks
+  </Step>
+
+  <Step title="Push to your fork">
+    ```bash
+    git push origin fix/editor-scroll-bug
+    ```
+  </Step>
+
+  <Step title="Open a pull request">
+    1. Go to the [CodeInk repository](https://github.com/jorgefl8/codeink)
+    2. Click "Pull Requests" → "New Pull Request"
+    3. Select your fork and branch
+    4. Fill out the PR template
+  </Step>
+
+  <Step title="PR description template">
+    Include the following in your PR description:
+    
+    ```markdown
+    ## Description
+    Brief description of changes
+    
+    ## Type of Change
+    - [ ] Bug fix
+    - [ ] New feature
+    - [ ] Breaking change
+    - [ ] Documentation update
+    
+    ## Testing
+    - [ ] Tested locally
+    - [ ] Ran type checking
+    - [ ] Tested in multiple browsers
+    - [ ] Tested responsive design
+    
+    ## Screenshots (if applicable)
+    [Add screenshots here]
+    
+    ## Related Issues
+    Fixes #123
+    ```
+  </Step>
+</Steps>
+
+## Pull Request Review Process
+
+1. **Automated checks**: TypeScript type checking runs automatically
+2. **Maintainer review**: A maintainer will review your code
+3. **Feedback**: Address any requested changes
+4. **Approval**: Once approved, your PR will be merged
+
+<Info>
+  PRs typically receive initial feedback within 3-5 days.
+</Info>
+
+## Areas That Need Help
+
+Looking for where to contribute? Here are priority areas:
+
+<CardGroup cols={2}>
+  <Card title="Export Formats" icon="file-export">
+    Add HTML, PDF, or DOCX export functionality
+  </Card>
+  <Card title="Collaborative Editing" icon="users">
+    Implement real-time collaboration features
+  </Card>
+  <Card title="Mobile Experience" icon="mobile">
+    Improve mobile editor UX and gestures
+  </Card>
+  <Card title="Accessibility" icon="universal-access">
+    Enhance keyboard navigation and screen reader support
+  </Card>
+  <Card title="Internationalization" icon="language">
+    Add multi-language UI support
+  </Card>
+  <Card title="Plugin System" icon="plug">
+    Design extensible plugin architecture
+  </Card>
+</CardGroup>
+
+## Development Tips
+
+<AccordionGroup>
+  <Accordion title="Debugging the editor">
+    Access the CodeMirror instance in browser console:
+    
+    ```javascript
+    // Get editor content
+    document.querySelector('.cm-editor').cmView.state.doc.toString()
+    
+    // Get lint diagnostics
+    import { diagnosticCount } from '@codemirror/lint'
+    diagnosticCount(view.state)
+    ```
+  </Accordion>
+
+  <Accordion title="Testing IndexedDB">
+    View stored documents in browser DevTools:
+    
+    1. Open DevTools → Application tab
+    2. Expand "IndexedDB" → "codeink-docs"
+    3. Click "documents" store
+  </Accordion>
+
+  <Accordion title="Hot module replacement">
+    HMR is enabled by default. For script changes that don't reload:
+    
+    ```typescript
+    // Add to your script file
+    if (import.meta.hot) {
+      import.meta.hot.accept()
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Performance profiling">
+    Use browser DevTools Performance tab:
+    
+    1. Start recording
+    2. Type in editor
+    3. Stop recording
+    4. Look for long tasks (>50ms)
+    
+    Focus areas: markdown parsing, syntax highlighting, preview rendering
+  </Accordion>
+</AccordionGroup>
+
+## Getting Help
+
+<CardGroup cols={2}>
+  <Card title="GitHub Discussions" icon="comments">
+    Ask questions and discuss ideas
+  </Card>
+  <Card title="GitHub Issues" icon="circle-exclamation">
+    Report bugs and request features
+  </Card>
+</CardGroup>
+
+## Recognition
+
+Contributors are recognized in:
+- GitHub contributors list
+- Release notes for significant contributions
+- Project README
+
+<Tip>
+  First-time contributors: Look for issues labeled `good first issue` to get started!
+</Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Setup Guide" icon="rocket" href="/development/setup">
+    Set up your development environment
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/development/architecture">
+    Understand the codebase architecture
+  </Card>
+  <Card title="Code Structure" icon="folder-tree" href="/development/code-structure">
+    Learn the project organization
+  </Card>
+</CardGroup>

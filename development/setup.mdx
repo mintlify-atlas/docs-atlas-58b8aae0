@@ -1,0 +1,236 @@
+---
+title: "Local Development Setup"
+description: "Get CodeInk running locally on your machine for development"
+---
+
+This guide walks you through setting up CodeInk for local development. The entire setup process takes less than 5 minutes.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+<CardGroup cols={2}>
+  <Card title="Bun" icon="circle-check">
+    CodeInk uses Bun as its JavaScript runtime and package manager
+    
+    [Install Bun](https://bun.sh)
+  </Card>
+  <Card title="Node.js 18+" icon="circle-check">
+    Optional but recommended for compatibility
+    
+    [Install Node.js](https://nodejs.org)
+  </Card>
+</CardGroup>
+
+## Quick Start
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the CodeInk repository from GitHub:
+    
+    ```bash
+    git clone https://github.com/jorgefl8/codeink.git
+    cd codeink
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    Install all required dependencies using Bun:
+    
+    ```bash
+    bun install
+    ```
+    
+    This will install all packages defined in `package.json`, including:
+    - Astro framework and integrations
+    - CodeMirror editor and extensions
+    - Markdown processing libraries (marked, remark)
+    - Syntax highlighting (Shiki)
+    - Math rendering (KaTeX) and diagrams (Mermaid)
+  </Step>
+
+  <Step title="Start the development server">
+    Launch the development server:
+    
+    ```bash
+    bun dev
+    ```
+    
+    The development server will start at:
+    
+    <Info>
+      http://localhost:4321
+    </Info>
+    
+    The server supports hot module replacement (HMR), so changes to your code will be reflected immediately in the browser.
+  </Step>
+
+  <Step title="Open in browser">
+    Navigate to http://localhost:4321 in your web browser to see CodeInk running locally.
+  </Step>
+</Steps>
+
+## Available Scripts
+
+CodeInk provides several npm scripts for development and production:
+
+<CodeGroup>
+```bash Development
+bun dev
+# Starts the Astro development server on port 4321
+# Includes hot module replacement
+```
+
+```bash Type Checking
+bun run lint
+# Runs Astro's built-in type checker
+# Validates TypeScript types across the project
+```
+
+```bash Production Build
+bun run build
+# Creates an optimized production build
+# Output is ready for deployment to Cloudflare Pages
+```
+
+```bash Preview Build
+bun run preview
+# Previews the production build locally
+# Useful for testing before deployment
+```
+</CodeGroup>
+
+## Project Structure
+
+After cloning, your project directory will look like this:
+
+```
+codeink/
+├── src/
+│   ├── components/     # Astro components
+│   ├── layouts/        # Page layouts
+│   ├── pages/          # Route pages
+│   ├── scripts/        # Client-side TypeScript
+│   ├── lib/            # Utility libraries
+│   ├── styles/         # CSS files
+│   └── assets/         # Static assets (SVGs, icons)
+├── public/             # Static files served as-is
+├── astro.config.mjs    # Astro configuration
+├── package.json        # Dependencies and scripts
+├── tsconfig.json       # TypeScript configuration
+└── wrangler.toml       # Cloudflare deployment config
+```
+
+See [Code Structure](/development/code-structure) for a detailed breakdown of each directory.
+
+## Development Workflow
+
+### Making Changes
+
+1. **Edit components** in `src/components/` or `src/pages/`
+2. **Modify styles** in `src/styles/`
+3. **Update scripts** in `src/scripts/`
+
+Changes are automatically detected and the browser refreshes.
+
+### Type Checking
+
+Run type checking before committing:
+
+```bash
+bun run lint
+```
+
+<Warning>
+  Always fix TypeScript errors before submitting pull requests.
+</Warning>
+
+## Building for Production
+
+Create an optimized production build:
+
+```bash
+bun run build
+```
+
+The build process:
+
+1. **Type checks** all TypeScript files
+2. **Bundles** JavaScript with Vite
+3. **Optimizes** assets (images, CSS, fonts)
+4. **Code splits** vendor libraries:
+   - `vendor-codemirror`: CodeMirror editor
+   - `vendor-marked`: Markdown parser
+   - `vendor-remark`: Markdown linter
+5. **Generates** server-side rendered pages
+
+Output is placed in the `dist/` directory.
+
+### Preview Production Build
+
+Test the production build locally:
+
+```bash
+bun run preview
+```
+
+## Environment Configuration
+
+CodeInk runs entirely client-side with no environment variables required for development.
+
+### Deployment Configuration
+
+For production deployment to Cloudflare Pages, the following configuration is used:
+
+```toml wrangler.toml
+name = "codeink"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "dist"
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Port 4321 is already in use">
+    If port 4321 is taken, Astro will automatically try the next available port. You can also specify a custom port:
+    
+    ```bash
+    bun dev --port 3000
+    ```
+  </Accordion>
+
+  <Accordion title="Dependencies fail to install">
+    Try clearing Bun's cache and reinstalling:
+    
+    ```bash
+    rm -rf node_modules bun.lock
+    bun install
+    ```
+  </Accordion>
+
+  <Accordion title="TypeScript errors in editor">
+    Ensure your editor is using the workspace TypeScript version:
+    
+    **VS Code**: Press `Cmd+Shift+P` and select "TypeScript: Select TypeScript Version" → "Use Workspace Version"
+  </Accordion>
+
+  <Accordion title="Changes not reflecting in browser">
+    1. Hard refresh the browser (`Cmd+Shift+R` or `Ctrl+Shift+R`)
+    2. Restart the development server
+    3. Clear browser cache and IndexedDB
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="sitemap" href="/development/architecture">
+    Learn about CodeInk's technical architecture
+  </Card>
+  <Card title="Code Structure" icon="folder-tree" href="/development/code-structure">
+    Explore the codebase organization
+  </Card>
+  <Card title="Contributing" icon="code-pull-request" href="/development/contributing">
+    Start contributing to CodeInk
+  </Card>
+</CardGroup>

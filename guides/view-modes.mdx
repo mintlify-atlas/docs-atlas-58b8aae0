@@ -1,0 +1,329 @@
+---
+title: View Modes
+description: Switch between editor, split, and preview modes to optimize your markdown writing experience
+---
+
+CodeInk offers three view modes to match your workflow: **Editor**, **Split**, and **Preview**. Each mode is optimized for different stages of the writing process.
+
+## Available View Modes
+
+Switch between modes using the view mode buttons in the header, right next to the export button.
+
+<CardGroup cols={3}>
+  <Card title="Editor" icon="pen">
+    Full-width editor for focused writing
+  </Card>
+  <Card title="Split" icon="columns">
+    Side-by-side editor and live preview
+  </Card>
+  <Card title="Preview" icon="eye">
+    Full-width preview of rendered markdown
+  </Card>
+</CardGroup>
+
+## Editor Mode
+
+Focus entirely on writing with the full-width editor view.
+
+### When to Use
+
+- Writing long-form content
+- Drafting without distractions
+- Working on mobile devices
+- Editing complex markdown syntax
+
+### Features
+
+<Check>
+  - Full screen width dedicated to editor
+  - Syntax highlighting for markdown
+  - Line numbers and gutters
+  - Active line highlighting
+  - Real-time lint checking
+</Check>
+
+### Implementation
+
+Editor-only mode is set via a data attribute:
+
+```typescript
+function setViewMode(mode: ViewMode) {
+  editorRoot.setAttribute("data-view", "editor")
+  viewEditorBtn?.classList.add("active")
+  viewSplitBtn?.classList.remove("active")
+  viewPreviewBtn?.classList.remove("active")
+}
+
+viewEditorBtn?.addEventListener("click", () => setViewMode("editor"))
+```
+
+The CSS hides the preview pane and resize handle:
+
+```css
+#editor-root[data-view="editor"] #editor-pane {
+  flex: 1;
+  min-width: 0;
+}
+
+#editor-root[data-view="editor"] #preview-pane,
+#editor-root[data-view="editor"] #resize-handle {
+  display: none;
+}
+```
+
+<Note>
+  On mobile devices (width < 640px), CodeInk automatically defaults to Editor mode for optimal usability.
+</Note>
+
+## Split Mode
+
+Work with a side-by-side view showing both the editor and live preview.
+
+### When to Use
+
+- Writing documentation or guides
+- Checking markdown rendering in real-time
+- Verifying complex formatting
+- Working with tables, code blocks, or math
+- Desktop and tablet devices
+
+### Features
+
+<Check>
+  - **Live Preview**: See rendered output as you type
+  - **Adjustable Panels**: Drag the resize handle to adjust panel sizes
+  - **Synchronized Scrolling**: Preview updates without losing scroll position
+  - **Mermaid Diagrams**: View diagram rendering instantly
+  - **Math Rendering**: Preview KaTeX equations in real-time
+</Check>
+
+### Panel Resizing
+
+Click and drag the vertical divider between panels to adjust their width:
+
+```typescript
+const handleMouseDown = (e: MouseEvent) => {
+  isResizing = true
+  startX = e.clientX
+  startWidth = editorPane.offsetWidth
+  handle.classList.add("dragging")
+}
+
+const handleMouseMove = (e: MouseEvent) => {
+  if (!isResizing) return
+  const dx = e.clientX - startX
+  const newWidth = startWidth + dx
+  editorPane.style.width = `${newWidth}px`
+  editorPane.style.flex = "none"
+}
+```
+
+<Tip>
+  Double-click the resize handle to reset panels to equal width (50/50 split).
+</Tip>
+
+### Split View Layout
+
+Both panes share equal space by default:
+
+```css
+#editor-root[data-view="split"] #editor-pane {
+  flex: 1;
+  min-width: 0;
+}
+
+#editor-root[data-view="split"] #preview-pane {
+  flex: 1;
+  min-width: 0;
+}
+```
+
+<Note>
+  Split mode is hidden on mobile devices to maintain readability. Use the Editor or Preview buttons to switch between views on smaller screens.
+</Note>
+
+## Preview Mode
+
+View the full rendered markdown output without the editor.
+
+### When to Use
+
+- Reviewing final output
+- Reading your document like an article
+- Presenting content to others
+- Checking overall layout and formatting
+- Printing or capturing screenshots
+
+### Features
+
+<Check>
+  - Full-width preview rendering
+  - Clean, distraction-free reading
+  - Rendered markdown prose styling
+  - Active syntax highlighting in code blocks
+  - Mermaid diagram rendering
+  - KaTeX math rendering
+</Check>
+
+### Implementation
+
+```typescript
+function setViewMode(mode: ViewMode) {
+  editorRoot.setAttribute("data-view", "preview")
+  viewEditorBtn?.classList.remove("active")
+  viewSplitBtn?.classList.remove("active")
+  viewPreviewBtn?.classList.add("active")
+}
+
+viewPreviewBtn?.addEventListener("click", () => setViewMode("preview"))
+```
+
+Preview-only mode hides the editor:
+
+```css
+#editor-root[data-view="preview"] #editor-pane,
+#editor-root[data-view="preview"] #resize-handle {
+  display: none;
+}
+
+#editor-root[data-view="preview"] #preview-pane {
+  flex: 1;
+  width: 100%;
+}
+```
+
+## View Mode Controller
+
+The view mode system is managed by a controller that handles state and events:
+
+```typescript
+export type ViewMode = "split" | "editor" | "preview"
+
+export function createViewModeController(editorRoot: HTMLElement) {
+  const viewEditorBtn = document.getElementById("view-editor")
+  const viewSplitBtn = document.getElementById("view-split")
+  const viewPreviewBtn = document.getElementById("view-preview")
+
+  function setViewMode(mode: ViewMode) {
+    editorRoot.setAttribute("data-view", mode)
+    viewEditorBtn?.classList.toggle("active", mode === "editor")
+    viewSplitBtn?.classList.toggle("active", mode === "split")
+    viewPreviewBtn?.classList.toggle("active", mode === "preview")
+
+    // Reset custom panel widths
+    const editorPane = document.getElementById("editor-pane")
+    if (editorPane) {
+      editorPane.style.flex = ""
+      editorPane.style.width = ""
+    }
+  }
+
+  function bindEvents(signal: AbortSignal) {
+    viewEditorBtn?.addEventListener("click", () => setViewMode("editor"), { signal })
+    viewSplitBtn?.addEventListener("click", () => setViewMode("split"), { signal })
+    viewPreviewBtn?.addEventListener("click", () => setViewMode("preview"), { signal })
+  }
+
+  return { setViewMode, bindEvents }
+}
+```
+
+## Responsive Behavior
+
+CodeInk adapts view modes based on screen size:
+
+### Desktop (≥640px)
+
+- All three modes available
+- Split mode is the default
+- Resize handle visible and functional
+
+### Mobile (&lt;640px)
+
+- Editor and Preview modes available
+- Split mode hidden to maintain readability
+- Editor mode is the default
+- Resize handle hidden
+
+```typescript
+const isMobile = window.innerWidth < 640
+viewMode.setViewMode(isMobile ? "editor" : "split")
+```
+
+## View Mode Buttons
+
+The view mode buttons are located in the header toolbar:
+
+```astro
+<div class="flex items-center gap-2">
+  <div class="flex items-center rounded-lg bg-muted/30 p-0.5 gap-0.5">
+    <button id="view-editor" type="button" aria-label="Editor only">
+      <svg><!-- pen icon --></svg>
+      <span class="hidden sm:inline">Editor</span>
+    </button>
+    <button id="view-split" type="button" class="hidden sm:inline-flex" aria-label="Split view">
+      <svg><!-- columns icon --></svg>
+      Split
+    </button>
+    <button id="view-preview" type="button" aria-label="Preview only">
+      <svg><!-- eye icon --></svg>
+      <span class="hidden sm:inline">Preview</span>
+    </button>
+  </div>
+</div>
+```
+
+## Active State Styling
+
+The active view mode button is highlighted:
+
+- **Primary color text**
+- **Primary background** with subtle opacity
+- **Glow effect** using box-shadow
+
+```css
+[&.active]:text-primary
+[&.active]:bg-primary/10
+[&.active]:shadow-[0_0_12px_rgba(245,158,11,0.15)]
+```
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Draft in Editor Mode" icon="pen">
+    Start writing in editor-only mode to minimize distractions and focus on content.
+  </Card>
+  <Card title="Format in Split Mode" icon="columns">
+    Switch to split view when adding complex formatting, tables, or code blocks.
+  </Card>
+  <Card title="Review in Preview Mode" icon="eye">
+    Use preview-only mode to read your document and catch formatting issues.
+  </Card>
+  <Card title="Adjust Panel Sizes" icon="arrows-left-right">
+    In split mode, make the editor wider for writing or the preview wider for reviewing.
+  </Card>
+</CardGroup>
+
+## Keyboard Navigation
+
+<Tip>
+  While CodeInk doesn't have built-in keyboard shortcuts for view modes, you can navigate using:
+  - **Tab**: Move focus between buttons
+  - **Enter** or **Space**: Activate the focused button
+</Tip>
+
+## Pane Headers
+
+Each pane displays a header showing its purpose:
+
+### Editor Pane
+- **Indicator**: Orange dot
+- **Label**: "EDITOR"
+- **Meta**: "Markdown"
+
+### Preview Pane
+- **Indicator**: Green dot
+- **Label**: "PREVIEW"
+- **Meta**: "Live"
+
+These headers remain sticky and always visible while scrolling.

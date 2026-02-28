@@ -1,0 +1,254 @@
+---
+title: Document Management
+description: Learn how to create, save, rename, and delete documents in CodeInk
+---
+
+CodeInk stores all your documents locally in your browser using IndexedDB, giving you fast, offline access to your work.
+
+## Creating Documents
+
+### New Document Creation
+
+When you first open the editor or navigate to `/editor#new`, CodeInk automatically creates a new document for you.
+
+<Steps>
+  <Step title="Navigate to Documents">
+    Go to the Documents page from the main navigation
+  </Step>
+  <Step title="Click 'Create Document'">
+    Click the "Create a document" button in the empty state, or if you have existing documents, use the header button
+  </Step>
+  <Step title="Start Writing">
+    Your new document opens with default markdown template content
+  </Step>
+</Steps>
+
+<Note>
+  Each document is assigned a unique UUID automatically. The document URL updates to `/editor#[document-id]` so you can bookmark or share specific documents.
+</Note>
+
+### Document Creation Code
+
+Here's how documents are created internally:
+
+```typescript
+const docId = crypto.randomUUID()
+const now = Date.now()
+const doc: Document = {
+  id: docId,
+  title: extractTitle(DEFAULT_MARKDOWN),
+  content: DEFAULT_MARKDOWN,
+  createdAt: now,
+  updatedAt: now,
+}
+await saveDoc(doc)
+window.history.replaceState(null, "", `/editor#${docId}`)
+```
+
+## Auto-Save System
+
+CodeInk automatically saves your work as you type, so you never lose your progress.
+
+### How Auto-Save Works
+
+- **Debounced Saving**: Changes are saved 1 second after you stop typing
+- **Visual Feedback**: The status bar shows "Saving..." while saving and "Saved locally" when complete
+- **No Manual Save Required**: Every keystroke triggers the auto-save timer
+
+<Check>
+  Watch the status bar in the bottom-right corner to see save status in real-time:
+  - **Saving...** (with spinning icon): Your changes are being saved
+  - **Saved locally** (with checkmark): All changes are saved to IndexedDB
+</Check>
+
+### Save State Implementation
+
+The editor listens for content changes and triggers auto-save:
+
+```typescript
+window.addEventListener("editor-change", (e: CustomEvent) => {
+  const content = e.detail.content
+  setSaveState("saving")
+
+  if (autoSaveTimer) clearTimeout(autoSaveTimer)
+  autoSaveTimer = setTimeout(async () => {
+    const now = Date.now()
+    const doc: Document = {
+      id: docId,
+      title: extractTitle(content),
+      content,
+      createdAt,
+      updatedAt: now,
+    }
+    await saveDoc(doc)
+    setSaveState("saved")
+  }, 1000) // 1 second debounce
+})
+```
+
+## Viewing Documents
+
+All your documents are displayed on the Documents page at `/documents`.
+
+### Document Cards
+
+Each document card shows:
+
+- **Title**: Extracted from the first H1 heading, or custom title if set
+- **Preview**: First 100 characters of content
+- **Timestamp**: Relative time ("Just now", "5m ago", "2h ago", etc.)
+
+### Sorting
+
+Documents are automatically sorted by last updated time, with the most recently modified documents appearing first.
+
+```typescript
+export function getAllDocs(): Promise<Document[]> {
+  return withStore("readonly", (store) => store.getAll(), (result) =>
+    (result as Document[]).sort((a, b) => b.updatedAt - a.updatedAt)
+  )
+}
+```
+
+## Renaming Documents
+
+You can rename any document to give it a custom title that overrides the auto-extracted heading.
+
+<Steps>
+  <Step title="Hover over Document">
+    On the Documents page, hover over any document card to reveal action buttons
+  </Step>
+  <Step title="Click Rename Icon">
+    Click the pencil icon in the top-right of the card
+  </Step>
+  <Step title="Enter New Title">
+    Type your custom title (max 20 characters)
+  </Step>
+  <Step title="Save Changes">
+    Press **Enter** to save, or **Escape** to cancel
+  </Step>
+</Steps>
+
+<Warning>
+  Custom titles override the auto-extracted H1 heading. To revert to auto-extraction, delete all text and press Enter.
+</Warning>
+
+### Rename Implementation
+
+The rename feature uses inline editing:
+
+```typescript
+const input = document.createElement("input")
+input.type = "text"
+input.value = currentTitle
+input.maxLength = MAX_TITLE_LENGTH // 20 characters
+
+input.addEventListener("keydown", (ke) => {
+  if (ke.key === "Enter") {
+    const newTitle = input.value.trim()
+    const doc = await getDoc(id)
+    if (doc) {
+      doc.customTitle = newTitle || undefined
+      await saveDoc(doc)
+    }
+  } else if (ke.key === "Escape") {
+    cancel()
+  }
+})
+```
+
+## Deleting Documents
+
+Remove documents you no longer need from your local storage.
+
+<Steps>
+  <Step title="Hover over Document">
+    Hover over the document card you want to delete
+  </Step>
+  <Step title="Click Delete Icon">
+    Click the trash icon in the top-right corner
+  </Step>
+  <Step title="Confirm Deletion">
+    Confirm the deletion in the browser dialog
+  </Step>
+</Steps>
+
+<Warning>
+  **Deletion is permanent!** Documents are completely removed from IndexedDB and cannot be recovered. Make sure to export important documents before deleting.
+</Warning>
+
+### Delete Code
+
+```typescript
+async function handleDelete(id: string, rerender: () => void) {
+  if (!confirm("Delete this document?")) return
+  await deleteDoc(id)
+  rerender()
+}
+
+export function deleteDoc(id: string): Promise<void> {
+  return withStore("readwrite", (store) => store.delete(id))
+}
+```
+
+## Document Structure
+
+Every document in CodeInk follows this TypeScript interface:
+
+```typescript
+export interface Document {
+  id: string           // Unique UUID
+  title: string        // Auto-extracted from H1 or first line
+  customTitle?: string // Optional user-defined title
+  content: string      // Full markdown content
+  createdAt: number    // Unix timestamp
+  updatedAt: number    // Unix timestamp (updates on save)
+}
+```
+
+## Storage Location
+
+<Info>
+  Documents are stored in **IndexedDB** under:
+  - **Database**: `codeink-docs`
+  - **Object Store**: `documents`
+  - **Key Path**: `id` (UUID)
+</Info>
+
+### Storage Advantages
+
+- **Offline Access**: No internet connection required
+- **Fast Performance**: Local database queries are instant
+- **Privacy**: Your data never leaves your browser
+- **Persistent**: Data survives browser restarts
+
+<Warning>
+  Clearing browser data will delete all your documents. Always export important work!
+</Warning>
+
+## Empty State
+
+When you have no documents, CodeInk displays a helpful empty state:
+
+- Friendly message encouraging you to create your first document
+- Prominent "Create a document" button
+- Information about getting started
+
+The empty state automatically disappears once you create your first document.
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use Descriptive H1 Headings" icon="heading">
+    The first `# Heading` in your document becomes the auto-extracted title. Make it descriptive!
+  </Card>
+  <Card title="Export Regularly" icon="download">
+    While auto-save is reliable, export important documents to markdown files for backup.
+  </Card>
+  <Card title="Rename for Organization" icon="pen">
+    Use custom titles to organize documents with specific naming conventions.
+  </Card>
+  <Card title="Delete Old Drafts" icon="trash">
+    Keep your documents page clean by removing drafts and test documents you no longer need.
+  </Card>
+</CardGroup>

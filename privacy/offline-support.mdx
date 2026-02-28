@@ -1,0 +1,382 @@
+---
+title: 'Offline Support'
+description: 'How CodeInk provides full functionality without an internet connection'
+icon: 'wifi-slash'
+---
+
+## Complete Offline Functionality
+
+CodeInk is designed as a **fully offline-capable application**. After the initial page load, you can disconnect from the internet and continue editing with zero degradation in functionality.
+
+<Info>
+CodeInk works 100% offline once loaded. Your internet connection is only needed to initially download the application code.
+</Info>
+
+## How Offline Mode Works
+
+### Initial Load Requirements
+
+On your first visit to CodeInk:
+
+1. **Application Code**: HTML, CSS, and JavaScript are downloaded from the CDN
+2. **Editor Assets**: CodeMirror editor components
+3. **Rendering Libraries**: Marked, Mermaid, KaTeX, and Shiki are loaded
+4. **Fonts and Icons**: UI assets are cached by the browser
+
+<Note>
+The initial download is approximately 2-3 MB. After this, everything runs locally.
+</Note>
+
+### After Initial Load
+
+Once the application is loaded:
+
+- **All features work offline**: Editing, preview, syntax highlighting, math rendering, diagrams
+- **No network requests**: The application never attempts to contact servers
+- **Local storage only**: All data operations use IndexedDB
+- **No cloud sync**: Documents remain on your device
+
+## Offline Features
+
+Every CodeInk feature works offline:
+
+### Document Management
+
+- Create new documents
+- Edit existing documents
+- Delete documents
+- Auto-save changes to IndexedDB
+- View document list sorted by last edit
+
+### Editor Capabilities
+
+- Real-time markdown editing
+- Syntax highlighting for 16+ languages
+- Markdown linting with remark-lint
+- Auto-fix for common markdown issues
+- Multiple view modes (editor, split, preview)
+- Resizable split panes
+
+### Rendering Features
+
+- Live markdown preview
+- Mermaid diagram rendering (flowcharts, sequence diagrams, ER diagrams, Gantt charts, etc.)
+- KaTeX math rendering (inline and display mode)
+- Code syntax highlighting via Shiki
+- GitHub-style alerts (NOTE, TIP, IMPORTANT, WARNING, CAUTION)
+- Tables and footnotes
+- GitHub Flavored Markdown (GFM) support
+
+<Info>
+All rendering happens in your browser. No external APIs or services are required.
+</Info>
+
+### Export Functionality
+
+- Export documents as markdown files
+- Download to your local filesystem
+- No cloud storage or upload required
+
+## Architecture for Offline Operation
+
+CodeInk's architecture is specifically designed for offline use:
+
+### No Server Dependencies
+
+```typescript
+// From src/lib/db.ts - All operations are local
+export function getAllDocs(): Promise<Document[]> {
+  return withStore("readonly", (store) => store.getAll())
+}
+
+export function saveDoc(doc: Document): Promise<void> {
+  return withStore("readwrite", (store) => store.put(doc))
+}
+```
+
+Notice:
+- No `fetch()` calls to external APIs
+- No authentication tokens or API keys
+- No network error handling (because there are no network requests)
+
+### Client-Side Processing
+
+All document processing happens in your browser:
+
+1. **Markdown Parsing**: `marked` library runs client-side
+2. **Diagram Rendering**: `mermaid` generates SVGs locally
+3. **Math Rendering**: `katex` processes LaTeX locally
+4. **Syntax Highlighting**: `shiki` highlights code blocks locally
+5. **Linting**: `remark-lint` analyzes markdown locally
+
+### Browser Caching
+
+Modern browsers cache CodeInk's assets:
+
+- **Static Assets**: HTML, CSS, JavaScript files
+- **Libraries**: CodeMirror, Marked, Mermaid, KaTeX, Shiki
+- **Fonts**: UI typography assets
+
+This means subsequent visits may not require any network requests at all.
+
+## Testing Offline Mode
+
+To verify CodeInk works offline:
+
+### Method 1: Browser DevTools
+
+1. Open CodeInk in your browser
+2. Open Developer Tools (F12)
+3. Go to Network tab
+4. Enable "Offline" mode
+5. Continue using CodeInk normally
+
+### Method 2: Airplane Mode
+
+1. Load CodeInk while online
+2. Enable airplane mode or disconnect WiFi
+3. Refresh the page (if cached) or continue with loaded page
+4. All features should work normally
+
+### Method 3: Network Inspection
+
+1. Open CodeInk with Network tab open
+2. Create and edit documents
+3. Observe that no network requests are made after initial load
+
+<Note>
+After the initial page load, you should see zero network activity during normal document editing operations.
+</Note>
+
+## Comparison: Online vs Offline
+
+| Feature | Online | Offline | Notes |
+|---------|--------|---------|-------|
+| Create Documents | ✅ | ✅ | Identical |
+| Edit Documents | ✅ | ✅ | Identical |
+| Delete Documents | ✅ | ✅ | Identical |
+| Markdown Preview | ✅ | ✅ | Identical |
+| Mermaid Diagrams | ✅ | ✅ | Identical |
+| Math Rendering | ✅ | ✅ | Identical |
+| Syntax Highlighting | ✅ | ✅ | Identical |
+| Markdown Linting | ✅ | ✅ | Identical |
+| Export Documents | ✅ | ✅ | Identical |
+| Load Application | ✅ | ⚠️ | Requires browser cache |
+
+<Info>
+The only difference between online and offline operation is the ability to initially load the application. All features are 100% identical.
+</Info>
+
+## Browser Storage Persistence
+
+When using CodeInk offline, your data persists in IndexedDB:
+
+### Data Retention
+
+- Documents remain stored between sessions
+- Closing the browser does not delete data
+- System restarts do not affect stored documents
+- Works across multiple browser tabs
+
+### Storage Isolation
+
+Each browser profile maintains separate storage:
+
+- Work profile documents are separate from personal profile
+- Different browsers have independent storage
+- Incognito/private mode uses temporary storage
+
+<Warning>
+**Incognito Mode Limitation**
+
+Private/incognito browsing uses temporary storage that is cleared when you close the window. For long-term offline document storage, use normal browser mode.
+</Warning>
+
+## Deployment Architecture
+
+CodeInk is deployed as a static site:
+
+- **Hosting**: Cloudflare Pages (based on `@astrojs/cloudflare` dependency)
+- **Framework**: Astro (static site generator)
+- **Build Output**: Pre-rendered HTML and bundled JavaScript
+- **No Server**: No backend, database, or API endpoints
+
+This architecture ensures:
+
+1. **Fast Initial Load**: Static assets served from CDN edge locations
+2. **No Runtime Dependencies**: No server to go down or become unavailable
+3. **Offline Capability**: Once cached, works without internet
+4. **Complete Privacy**: No server-side processing or logging
+
+## Privacy Benefits of Offline Operation
+
+Offline functionality provides inherent privacy advantages:
+
+### No Data Transmission
+
+- Documents never sent to servers
+- No analytics pings or tracking beacons
+- No usage metrics collected
+- No telemetry or crash reporting
+
+### No Network Surveillance
+
+- ISPs cannot see your document content
+- Network administrators cannot monitor usage
+- No DNS lookups during editing
+- No external service dependencies
+
+### Complete Isolation
+
+- Works on air-gapped systems (after initial load)
+- No cloud service integrations
+- No third-party API calls
+- No external authentication or authorization
+
+<Info>
+Once loaded, CodeInk operates as if it were a native desktop application, with no communication to external systems.
+</Info>
+
+## Use Cases for Offline Operation
+
+### Ideal Scenarios
+
+1. **Travel**: Edit documents on flights or in areas with poor connectivity
+2. **Privacy-Sensitive Work**: Ensure content never touches the network
+3. **Unreliable Internet**: Continue working during connection drops
+4. **Corporate Networks**: No external dependencies to whitelist
+5. **Bandwidth Conservation**: Zero data usage after initial load
+6. **Air-Gapped Systems**: Use on isolated networks (with initial cached load)
+
+### Example Workflow
+
+```bash
+# At home with internet
+1. Visit https://codeink.app
+2. Create and edit documents
+3. Export important documents to filesystem
+
+# On airplane (offline)
+4. Open CodeInk (loads from cache)
+5. Continue editing existing documents
+6. Create new documents
+7. All changes saved to IndexedDB
+
+# Back online
+8. Export updated documents if needed
+9. No synchronization required
+```
+
+## Technical Implementation Details
+
+CodeInk's offline capability comes from its architecture:
+
+### No Network Code
+
+Reviewing the database implementation (`src/lib/db.ts`):
+
+- No `fetch()` calls
+- No WebSocket connections
+- No AJAX requests
+- No external API integrations
+
+The entire 64-line implementation uses only:
+- `indexedDB` API (browser built-in)
+- Promise-based async operations
+- Local error handling
+
+### Client-Side Dependencies
+
+From `package.json`, all dependencies run client-side:
+
+```json
+{
+  "marked": "^17.0.1",           // Markdown parser
+  "mermaid": "^11.12.2",         // Diagram renderer
+  "katex": "^0.16.28",           // Math renderer
+  "shiki": "^3.22.0",            // Syntax highlighter
+  "codemirror": "^6.0.1"         // Editor component
+}
+```
+
+**None of these libraries make network requests during normal operation.**
+
+### Build-Time Optimization
+
+Astro pre-renders content at build time:
+
+- Static HTML generated during build
+- JavaScript bundled and minified
+- Assets optimized and compressed
+- No server-side rendering required at runtime
+
+This means the application runs entirely from cached static files.
+
+## Limitations
+
+### What Doesn't Work Offline
+
+<Warning>
+**Offline Limitations**
+
+1. **Initial Application Load**: Requires network to download CodeInk initially
+2. **Browser Cache Expiry**: May need to reload if cache is cleared
+3. **External Links**: Links in your markdown won't resolve offline
+4. **Documentation Access**: This documentation site requires internet
+</Warning>
+
+### What Still Works
+
+- All editing and preview features
+- All document management operations
+- All rendering capabilities (diagrams, math, code highlighting)
+- Export functionality
+- Markdown linting and auto-fix
+
+## Best Practices for Offline Use
+
+### Before Going Offline
+
+1. **Load CodeInk at least once** while online to cache the application
+2. **Create a browser bookmark** for easy offline access
+3. **Export critical documents** as backup
+4. **Test offline mode** before relying on it
+
+### During Offline Use
+
+1. **Use normal browser mode** (not incognito) for persistence
+2. **Keep the browser tab open** to maintain state
+3. **Export frequently** to filesystem as additional backup
+4. **Avoid clearing browser data** which would delete cached app and documents
+
+### After Returning Online
+
+1. **Export documents** if you need to share or back them up
+2. **Browser will automatically update cache** for new versions (optional)
+3. **No synchronization needed** - documents remain local
+
+<Note>
+CodeInk has no concept of "sync" because there is no server. Your documents remain on your device whether online or offline.
+</Note>
+
+## Comparison with Other Tools
+
+| Feature | CodeInk | Notion | Google Docs | VS Code |
+|---------|---------|--------|-------------|---------|
+| Works Offline | ✅ | ⚠️ Limited | ❌ No | ✅ Yes |
+| No Account Required | ✅ | ❌ | ❌ | ✅ |
+| No Installation | ✅ | ❌ | ✅ | ❌ |
+| Zero Data Transmission | ✅ | ❌ | ❌ | ✅ |
+| Live Markdown Preview | ✅ | ⚠️ Limited | ❌ | ⚠️ Plugin |
+| Mermaid Diagrams Offline | ✅ | ❌ | ❌ | ⚠️ Plugin |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Data Storage" icon="database" href="/privacy/data-storage">
+    Learn how IndexedDB stores your documents locally
+  </Card>
+  <Card title="Export Documents" icon="download" href="/guides/exporting">
+    Back up your work by exporting to markdown files
+  </Card>
+</CardGroup>

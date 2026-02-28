@@ -1,0 +1,380 @@
+---
+title: Keyboard Shortcuts
+description: Speed up your workflow with CodeInk's keyboard shortcuts and editor commands
+---
+
+CodeInk uses CodeMirror 6 as its editor engine, giving you access to a rich set of keyboard shortcuts for efficient markdown editing.
+
+## Editor Shortcuts
+
+### Text Selection
+
+<AccordionGroup>
+  <Accordion title="Select All">
+    **Shortcut**: `Ctrl+A` (Windows/Linux) or `Cmd+A` (Mac)
+
+    Select all text in the editor.
+  </Accordion>
+
+  <Accordion title="Select Line">
+    **Shortcut**: `Ctrl+L` (Windows/Linux) or `Cmd+L` (Mac)
+
+    Select the entire current line.
+  </Accordion>
+
+  <Accordion title="Expand Selection">
+    **Shortcut**: `Shift+Arrow Keys`
+
+    Expand selection character by character or line by line.
+  </Accordion>
+
+  <Accordion title="Select Word">
+    **Shortcut**: `Ctrl+Shift+Left/Right` (Windows/Linux) or `Cmd+Shift+Left/Right` (Mac)
+
+    Select words at a time.
+  </Accordion>
+</AccordionGroup>
+
+### Copy, Cut, and Paste
+
+<CardGroup cols={3}>
+  <Card title="Copy" icon="copy">
+    `Ctrl+C` / `Cmd+C`
+    
+    Copy selected text
+  </Card>
+  <Card title="Cut" icon="scissors">
+    `Ctrl+X` / `Cmd+X`
+    
+    Cut selected text
+  </Card>
+  <Card title="Paste" icon="paste">
+    `Ctrl+V` / `Cmd+V`
+    
+    Paste from clipboard
+  </Card>
+</CardGroup>
+
+### Undo and Redo
+
+| Action | Windows/Linux | Mac |
+|--------|--------------|-----|
+| **Undo** | `Ctrl+Z` | `Cmd+Z` |
+| **Redo** | `Ctrl+Y` or `Ctrl+Shift+Z` | `Cmd+Shift+Z` |
+
+<Note>
+  CodeInk maintains a full undo/redo history for each document. Changes are preserved even after auto-save.
+</Note>
+
+### Line Manipulation
+
+<AccordionGroup>
+  <Accordion title="Delete Line">
+    **Shortcut**: `Ctrl+Shift+K` (Windows/Linux) or `Cmd+Shift+K` (Mac)
+
+    Delete the entire current line.
+  </Accordion>
+
+  <Accordion title="Move Line Up">
+    **Shortcut**: `Alt+Up`
+
+    Move the current line up by one position.
+  </Accordion>
+
+  <Accordion title="Move Line Down">
+    **Shortcut**: `Alt+Down`
+
+    Move the current line down by one position.
+  </Accordion>
+
+  <Accordion title="Duplicate Line">
+    **Shortcut**: `Ctrl+Shift+D` (Windows/Linux) or `Cmd+Shift+D` (Mac)
+
+    Duplicate the current line or selection.
+  </Accordion>
+</AccordionGroup>
+
+### Indentation
+
+| Action | Shortcut |
+|--------|----------|
+| **Indent** | `Tab` |
+| **Outdent** | `Shift+Tab` |
+| **Indent More** | `Ctrl+]` / `Cmd+]` |
+| **Indent Less** | `Ctrl+[` / `Cmd+[` |
+
+<Tip>
+  You can indent or outdent multiple lines by selecting them first, then pressing `Tab` or `Shift+Tab`.
+</Tip>
+
+## Navigation Shortcuts
+
+### Cursor Movement
+
+<CardGroup cols={2}>
+  <Card title="Move by Character" icon="arrow-right">
+    `Left/Right Arrow Keys`
+    
+    Move cursor one character at a time
+  </Card>
+  <Card title="Move by Line" icon="arrows-up-down">
+    `Up/Down Arrow Keys`
+    
+    Move cursor one line at a time
+  </Card>
+  <Card title="Move by Word" icon="forward">
+    `Ctrl+Left/Right` (Windows/Linux)
+    
+    `Alt+Left/Right` (Mac)
+    
+    Jump between words
+  </Card>
+  <Card title="Jump to Line Start/End" icon="arrow-right-to-line">
+    `Home` / `End`
+    
+    Jump to beginning or end of line
+  </Card>
+</CardGroup>
+
+### Document Navigation
+
+| Action | Windows/Linux | Mac |
+|--------|--------------|-----|
+| **Jump to Document Start** | `Ctrl+Home` | `Cmd+Home` or `Cmd+Up` |
+| **Jump to Document End** | `Ctrl+End` | `Cmd+End` or `Cmd+Down` |
+| **Page Up** | `Page Up` | `Page Up` |
+| **Page Down** | `Page Down` | `Page Down` |
+
+## Markdown-Specific Shortcuts
+
+CodeMirror's markdown mode includes smart behaviors for markdown editing:
+
+### Lists
+
+<AccordionGroup>
+  <Accordion title="Continue List">
+    **Shortcut**: `Enter` (at end of list item)
+
+    Automatically continues lists with the appropriate marker:
+    
+    ```markdown
+    - First item
+    - Second item [press Enter]
+    - [cursor here]
+    ```
+  </Accordion>
+
+  <Accordion title="Exit List">
+    **Shortcut**: `Enter` twice (on empty list item)
+
+    Press Enter twice on an empty list item to exit the list.
+  </Accordion>
+
+  <Accordion title="Indent List Item">
+    **Shortcut**: `Tab`
+
+    Indent a list item to create a nested list:
+    
+    ```markdown
+    - Parent item
+      - Child item [press Tab to indent]
+    ```
+  </Accordion>
+
+  <Accordion title="Outdent List Item">
+    **Shortcut**: `Shift+Tab`
+
+    Outdent a nested list item.
+  </Accordion>
+</AccordionGroup>
+
+### Code Blocks
+
+<Tip>
+  Inside fenced code blocks (triple backticks), `Tab` inserts a real tab character instead of triggering indentation commands.
+</Tip>
+
+## Search Shortcuts
+
+CodeMirror includes built-in search functionality:
+
+| Action | Windows/Linux | Mac |
+|--------|--------------|-----|
+| **Find** | `Ctrl+F` | `Cmd+F` |
+| **Find Next** | `Ctrl+G` or `F3` | `Cmd+G` |
+| **Find Previous** | `Ctrl+Shift+G` or `Shift+F3` | `Cmd+Shift+G` |
+| **Replace** | `Ctrl+H` | `Cmd+Alt+F` |
+
+<Note>
+  The search panel appears at the top of the editor with options for case sensitivity and regex matching.
+</Note>
+
+## CodeInk-Specific Shortcuts
+
+### Status Bar Actions
+
+<CardGroup cols={2}>
+  <Card title="Close Info Popup" icon="xmark">
+    `Escape`
+    
+    Close the document info popup if open
+  </Card>
+  <Card title="Fix Lint Issues" icon="wrench">
+    Click "Fix" button in status bar
+    
+    Automatically fix common markdown linting issues
+  </Card>
+</CardGroup>
+
+### Lint Fix Implementation
+
+The lint fix button in the status bar runs automated fixes:
+
+```typescript
+fixBtn?.addEventListener("click", () => {
+  const content = getEditorContent()
+  const fixed = fixMarkdown(content)
+  if (fixed !== content) setEditorContent(fixed)
+})
+```
+
+Common fixes include:
+- Adding blank lines around headings
+- Fixing list indentation
+- Normalizing heading hierarchy
+- Standardizing list markers
+
+## Multi-Cursor Editing
+
+CodeMirror supports advanced multi-cursor editing:
+
+<Steps>
+  <Step title="Add Cursor">
+    Hold `Alt` (Windows/Linux) or `Option` (Mac) and click to add additional cursors
+  </Step>
+  <Step title="Edit Multiple Locations">
+    Type to edit all cursor locations simultaneously
+  </Step>
+  <Step title="Remove Extra Cursors">
+    Press `Escape` to return to a single cursor
+  </Step>
+</Steps>
+
+<Warning>
+  Multi-cursor mode is powerful but can be disorienting. Use `Escape` to reset if you get lost!
+</Warning>
+
+## Custom Keybindings
+
+CodeInk uses CodeMirror's default keybindings from the `basicSetup` extension:
+
+```typescript
+import { basicSetup } from "codemirror"
+import { markdown } from "@codemirror/lang-markdown"
+
+const state = EditorState.create({
+  doc: initialDoc,
+  extensions: [
+    basicSetup,
+    markdown({
+      addKeymap: true,  // Enable markdown-specific keybindings
+    }),
+    // ... other extensions
+  ],
+})
+```
+
+## Comments
+
+<Tip>
+  While markdown doesn't have native comment syntax, you can use HTML comments:
+  
+  Type `<!-- comment text -->` directly in the editor. These won't appear in the preview.
+</Tip>
+
+## Platform Differences
+
+### Key Naming
+
+| Windows/Linux | Mac | Description |
+|--------------|-----|-------------|
+| `Ctrl` | `Cmd` | Primary modifier key |
+| `Alt` | `Option` | Secondary modifier key |
+| `Win` | `Cmd` | System key (rarely used) |
+
+### Common Patterns
+
+<CardGroup cols={2}>
+  <Card title="Windows/Linux Pattern" icon="windows">
+    Most shortcuts use `Ctrl` as the primary modifier:
+    - `Ctrl+C`: Copy
+    - `Ctrl+V`: Paste
+    - `Ctrl+Z`: Undo
+  </Card>
+  <Card title="Mac Pattern" icon="apple">
+    Most shortcuts use `Cmd` as the primary modifier:
+    - `Cmd+C`: Copy
+    - `Cmd+V`: Paste
+    - `Cmd+Z`: Undo
+  </Card>
+</CardGroup>
+
+## Editor Configuration
+
+CodeInk's editor setup includes these keyboard-friendly features:
+
+```typescript
+import { EditorState } from "@codemirror/state"
+import { EditorView } from "@codemirror/view"
+import { basicSetup } from "codemirror"
+
+const state = EditorState.create({
+  extensions: [
+    basicSetup,  // Includes: history, search, selection, keybindings
+    markdown({ addKeymap: true }),
+    // ... other extensions
+  ],
+})
+```
+
+### What `basicSetup` Includes
+
+<Check>
+  - Full undo/redo history
+  - Search and replace
+  - Multi-cursor support
+  - Bracket matching
+  - Auto-indentation
+  - Line numbers
+  - Default keybindings
+</Check>
+
+## Accessibility
+
+CodeInk's editor is keyboard-accessible:
+
+- **Tab Navigation**: Move focus between UI elements
+- **Arrow Keys**: Navigate within the editor
+- **Screen Reader Support**: CodeMirror includes ARIA labels
+- **No Mouse Required**: All features accessible via keyboard
+
+<Info>
+  The editor automatically captures keyboard focus when you navigate to the editor page.
+</Info>
+
+## Tips for Efficiency
+
+<CardGroup cols={2}>
+  <Card title="Learn Word Navigation" icon="forward-fast">
+    Using `Ctrl/Cmd+Arrow` to jump between words is much faster than holding arrow keys.
+  </Card>
+  <Card title="Master Line Manipulation" icon="bars">
+    `Alt+Up/Down` to move lines and `Ctrl/Cmd+Shift+K` to delete lines can save tons of time.
+  </Card>
+  <Card title="Use Multi-Cursor" icon="i-cursor">
+    For repetitive edits, multi-cursor mode (`Alt/Option+Click`) is incredibly powerful.
+  </Card>
+  <Card title="Leverage List Continuation" icon="list">
+    Let the editor auto-continue your lists by just pressing Enter at the end of list items.
+  </Card>
+</CardGroup>

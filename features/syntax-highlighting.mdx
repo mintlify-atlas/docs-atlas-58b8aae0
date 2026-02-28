@@ -1,0 +1,325 @@
+---
+title: 'Syntax Highlighting'
+description: 'Beautiful code highlighting powered by Shiki with support for 60+ programming languages and dual themes'
+---
+
+## Overview
+
+CodeInk uses **Shiki** for syntax highlighting, providing accurate, beautiful highlighting that matches VS Code's tokenization. Shiki uses TextMate grammars to ensure precise syntax recognition.
+
+## Supported Languages
+
+### Core Languages
+
+CodeInk includes optimized support for 60+ languages loaded on-demand:
+
+<CardGroup cols={3}>
+  <Card title="Web" icon="globe">
+    - HTML
+    - CSS / SCSS / Sass / Less
+    - JavaScript / TypeScript
+    - JSX / TSX
+    - Vue / Svelte
+  </Card>
+  <Card title="Backend" icon="server">
+    - Python
+    - Go
+    - Rust
+    - Java
+    - Ruby
+    - PHP
+  </Card>
+  <Card title="DevOps" icon="code">
+    - Bash / Shell
+    - Dockerfile
+    - Terraform / HCL
+    - YAML / TOML
+    - Nginx
+  </Card>
+</CardGroup>
+
+### Complete Language List
+
+```typescript
+const LANGUAGE_LOADERS = {
+  html, js, ts, tsx, jsx, css, json, bash, markdown, python,
+  yaml, go, hcl, dockerfile, sql, rust, java, xml, c, cpp,
+  csharp, dart, graphql, kotlin, less, lua, nginx, php,
+  powershell, r, ruby, sass, scss, svelte, swift, terraform,
+  latex, mermaid, toml, vue
+}
+```
+
+## Theme Support
+
+### Dual Theme System
+
+Shiki is configured with both light and dark themes that automatically match the application theme:
+
+<Tabs>
+  <Tab title="Dark Theme">
+    **One Dark Pro** - A refined dark theme with excellent contrast:
+
+    ```typescript
+    import darkTheme from "@shikijs/themes/one-dark-pro"
+
+    const THEME = {
+      dark: "one-dark-pro",
+      light: "github-light",
+    }
+    ```
+
+    Provides rich, saturated colors optimized for long coding sessions.
+  </Tab>
+  <Tab title="Light Theme">
+    **GitHub Light** - Clean, professional light theme:
+
+    ```typescript
+    import lightTheme from "@shikijs/themes/github-light"
+    ```
+
+    Familiar color scheme matching GitHub's code blocks.
+  </Tab>
+</Tabs>
+
+### Dynamic Theme Switching
+
+The active theme is determined from the document's data attribute:
+
+```typescript
+function getDocumentTheme(): "light" | "dark" {
+  if (typeof document === "undefined") return "dark"
+  const theme = document.documentElement.getAttribute("data-theme")
+  return theme === "light" ? "light" : "dark"
+}
+
+// Applied during highlighting
+return h.codeToHtml(code, {
+  lang: resolvedLang,
+  theme: THEME[getDocumentTheme()],
+  transformers: [...]
+})
+```
+
+## Language Detection
+
+### Language Aliases
+
+Common language aliases are automatically resolved:
+
+```typescript
+const LANGUAGE_ALIASES = {
+  plaintext: "text",
+  javascript: "js",
+  typescript: "ts",
+  docker: "dockerfile",
+  md: "markdown",
+  yml: "yaml",
+  sh: "bash",
+  shell: "bash",
+  ps1: "powershell",
+  tf: "terraform",
+  tfvars: "terraform",
+  tex: "latex",
+  mmd: "mermaid",
+}
+```
+
+### Normalization Process
+
+```typescript
+function normalizeLanguage(lang?: string): string {
+  const normalized = (lang ?? "").toLowerCase()
+  if (!normalized) return "text"
+  return LANGUAGE_ALIASES[normalized] ?? normalized
+}
+```
+
+## Performance Optimization
+
+### Lazy Language Loading
+
+Languages are loaded on-demand to minimize initial bundle size:
+
+```typescript
+const loadedLanguages = new Set<string>()
+
+async function ensureLanguageLoaded(h: HighlighterCore, lang: string) {
+  if (loadedLanguages.has(lang)) return
+  
+  const language = await LANGUAGE_LOADERS[lang]()
+  h.loadLanguage(language.default)
+  loadedLanguages.add(lang)
+}
+```
+
+<Note>
+Only languages actually used in the document are loaded, reducing memory usage and load time.
+</Note>
+
+### JavaScript Regex Engine
+
+Shiki uses a lightweight JavaScript regex engine instead of Oniguruma for better performance:
+
+```typescript
+import { createJavaScriptRegexEngine } from "shiki/engine/javascript"
+
+let jsEngine: RegexEngine | null = null
+
+const getJsEngine = (): RegexEngine => {
+  jsEngine ??= createJavaScriptRegexEngine()
+  return jsEngine
+}
+
+const highlighter = createHighlighterCore({
+  themes: [darkTheme, lightTheme],
+  langs: [],
+  engine: getJsEngine(),
+})
+```
+
+### Singleton Highlighter
+
+A single highlighter instance is reused across all highlighting operations:
+
+```typescript
+let highlighter: Promise<HighlighterCore> | null = null
+
+const highlight = async (): Promise<HighlighterCore> => {
+  highlighter ??= createHighlighterCore({
+    themes: [darkTheme, lightTheme],
+    langs: [],
+    engine: getJsEngine(),
+  })
+  return highlighter
+}
+```
+
+## Code Block Rendering
+
+### Enhanced Code Blocks
+
+Code blocks include language indicators and copy buttons:
+
+```typescript
+const renderer = {
+  code({ text, lang }: Tokens.Code) {
+    const highlighted = highlightMap.get(text) ?? text
+    const label = normalizedLang || "text"
+    const iconPath = `/icons/lang/${iconLabel}.svg`
+    const displayLabel = label.charAt(0).toUpperCase() + label.slice(1)
+    
+    return `
+      <div class="code-block group" data-language="${label}">
+        <div class="code-block-header">
+          <div class="code-block-lang-info">
+            <img src="${iconPath}" alt="" />
+            <span class="code-block-lang">${displayLabel}</span>
+          </div>
+          <button class="copy-code-btn" type="button">
+            <!-- Copy icon -->
+          </button>
+        </div>
+        ${highlighted}
+      </div>
+    `
+  },
+}
+```
+
+### Line Numbers
+
+Line numbers are added using a custom Shiki transformer:
+
+```typescript
+const showLineNumbers = (): ShikiTransformer => ({
+  name: "AddLineNumbers",
+  pre(node) {
+    appendClass(node, "shiki-line-numbers")
+  },
+})
+```
+
+### Word Wrapping
+
+Optional word wrapping for long lines:
+
+```typescript
+const wordWrapContent = (): ShikiTransformer => ({
+  name: "WordWrap",
+  pre(node) {
+    appendClass(node, "shiki-word-wrap")
+  },
+})
+```
+
+## Integration with Marked
+
+### Async Token Walking
+
+Highlighting is performed asynchronously during markdown parsing:
+
+```typescript
+marked.use({
+  async: true,
+  async walkTokens(token: Token) {
+    if (token.type === "code") {
+      const codeToken = token as Tokens.Code
+      const normalizedLang = (codeToken.lang || "").toLowerCase()
+      
+      // Skip Mermaid diagrams
+      if (normalizedLang !== "mermaid" && normalizedLang !== "mmd") {
+        const html = await highlightCode(codeToken.text, codeToken.lang)
+        highlightMap.set(codeToken.text, html)
+      }
+    }
+  },
+})
+```
+
+### Highlight Cache
+
+Highlighted code is cached during the walk phase and reused during rendering:
+
+```typescript
+let highlightMap = new Map<string, string>()
+
+export async function renderMarkdown(content: string): Promise<string> {
+  highlightMap = new Map()
+  const result = await marked.parse(content)
+  highlightMap = new Map() // Clear after use
+  return result
+}
+```
+
+## Language Icons
+
+Each language gets a custom icon in code blocks:
+
+```typescript
+const iconLabel =
+  label === "tf" || label === "tfvars"
+    ? "terraform"
+  : label === "mmd"
+    ? "mermaid"
+  : label === "tex"
+    ? "latex"
+    : label
+
+const iconPath = iconLabel === "text" 
+  ? `/icons/lang/default.svg` 
+  : `/icons/lang/${iconLabel}.svg`
+```
+
+## Source Code Reference
+
+Implementation details can be found in:
+- `/src/lib/shiki/highlight.ts` - Core highlighting logic and language loaders
+- `/src/lib/shiki/transformers.ts` - Custom Shiki transformers
+- `/src/lib/markdown.ts` - Integration with marked.js
+
+## Related Features
+
+- [CodeMirror Editor](/features/editor) - Main editor interface
+- [Mermaid Diagrams](/features/mermaid-diagrams) - Special handling for diagram code blocks
+- [KaTeX Math](/features/katex-math) - Math equation rendering

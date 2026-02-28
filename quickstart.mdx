@@ -1,80 +1,412 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: 'Quickstart'
+description: 'Get started with CodeInk in seconds. Create your first Markdown document with real-time preview, syntax highlighting, and diagrams.'
+keywords: ['quickstart', 'getting started', 'first document', 'tutorial', 'markdown editor']
+icon: 'rocket'
 ---
 
-## Get started in three steps
+# Quickstart
 
-Get your documentation site running locally and make your first customization.
+Get started with CodeInk in less than 60 seconds. No account required, no installation needed.
 
-### Step 1: Set up your local environment
+<Note>
+  CodeInk runs entirely in your browser. Your documents are stored locally and never sent to any server.
+</Note>
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+## Create your first document
 
-### Step 2: Deploy your changes
+<Steps>
+  <Step title="Open the editor">
+    Navigate to the [documents page](https://codeink.app/documents) or click "Get started" from the homepage.
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    When you open CodeInk for the first time, a new document is automatically created with example content showing all major features.
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+    ```typescript src/scripts/editor.ts
+    async function createNewDocument(): Promise<{ docId: string; createdAt: number }> {
+      const docId = crypto.randomUUID()
+      const now = Date.now()
+      const doc: Document = {
+        id: docId,
+        title: extractTitle(DEFAULT_MARKDOWN),
+        content: DEFAULT_MARKDOWN,
+        createdAt: now,
+        updatedAt: now,
+      }
+      await saveDoc(doc)
+      window.history.replaceState(null, "", `/editor#${docId}`)
+      return { docId, createdAt: now }
+    }
+    ```
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+    <Info>
+      Each document gets a unique UUID stored in the URL hash (e.g., `/editor#abc-123-def`). Bookmark the URL to return to your document later.
+    </Info>
+  </Step>
 
-### Step 3: Go live
+  <Step title="Write some Markdown">
+    Start typing in the left pane. The preview updates in real-time on the right.
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+    Try this example:
+
+    ```markdown
+    # My first document
+
+    This is **bold text** and this is *italic text*.
+
+    ## Code example
+
+    Here's some TypeScript:
+
+    ```typescript
+    function greet(name: string): string {
+      return `Hello, ${name}!`
+    }
+
+    console.log(greet("World"))
+    ```
+    ```
+
+    As you type, the status bar at the bottom shows:
+    - Line count
+    - Word count
+    - Character count
+    - Save status
+
+    ```typescript src/scripts/status-bar.ts
+    export function updateStatusBar(content: string) {
+      const lines = content.split("\n").length
+      const words = content.trim().split(/\s+/).filter(Boolean).length
+      const chars = content.length
+
+      document.getElementById("line-count")!.textContent = `${lines} lines`
+      document.getElementById("word-count")!.textContent = `${words} words`
+      document.getElementById("char-count")!.textContent = `${chars} chars`
+    }
+    ```
+  </Step>
+
+  <Step title="Add syntax highlighting">
+    CodeInk automatically highlights code blocks using Shiki, the same engine that powers VS Code.
+
+    Supported languages include:
+    - JavaScript, TypeScript, JSX, TSX
+    - Python, Rust, Go, Java, Kotlin
+    - HTML, CSS, SCSS, Tailwind
+    - SQL, GraphQL, YAML, JSON, TOML
+    - Bash, Docker, Terraform, HCL
+    - And 16+ more
+
+    Try adding a Python code block:
+
+    ````markdown
+    ```python
+    def factorial(n: int) -> int:
+        if n <= 1:
+            return 1
+        return n * factorial(n - 1)
+
+    print(factorial(5))  # Output: 120
+    ```
+    ````
+
+    <Tip>
+      Always specify the language for code blocks (e.g., ` ```python `) to enable syntax highlighting.
+    </Tip>
+  </Step>
+
+  <Step title="Create a diagram">
+    Add a Mermaid diagram to visualize your ideas. CodeInk renders diagrams in real-time.
+
+    Try this flowchart:
+
+    ````markdown
+    ```mermaid
+    graph TD
+        A[User opens CodeInk] --> B{First time?}
+        B -->|Yes| C[Create new document]
+        B -->|No| D[Load existing document]
+        C --> E[Show example content]
+        D --> E
+        E --> F[User writes Markdown]
+        F --> G[Auto-save to IndexedDB]
+    ```
+    ````
+
+    Or try a sequence diagram:
+
+    ````markdown
+    ```mermaid
+    sequenceDiagram
+        participant User
+        participant Editor
+        participant Preview
+        participant IndexedDB
+
+        User->>Editor: Type Markdown
+        Editor->>Preview: Update content
+        Preview->>Preview: Render HTML
+        Editor->>IndexedDB: Auto-save after 1s
+        IndexedDB-->>Editor: Confirm save
+    ```
+    ````
+
+    <Info>
+      Mermaid supports 15+ diagram types including flowcharts, sequence diagrams, ER diagrams, Gantt charts, class diagrams, state diagrams, and more.
+    </Info>
+  </Step>
+
+  <Step title="Add math equations">
+    Use KaTeX to render LaTeX math expressions.
+
+    For inline math, use single dollar signs:
+
+    ```markdown
+    The quadratic formula is $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$.
+    ```
+
+    For display math, use double dollar signs:
+
+    ```markdown
+    $$
+    \sum_{i=1}^{n} i = \frac{n(n+1)}{2}
+    $$
+    ```
+
+    Try adding this matrix multiplication:
+
+    ```markdown
+    $$
+    \begin{pmatrix}
+    1 & 2 \\
+    3 & 4
+    \end{pmatrix}
+    \times
+    \begin{pmatrix}
+    5 & 6 \\
+    7 & 8
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+    19 & 22 \\
+    43 & 50
+    \end{pmatrix}
+    $$
+    ```
+  </Step>
+
+  <Step title="Switch view modes">
+    Use the view mode buttons at the top of the editor to change the layout:
+
+    - **Editor**: Full-width editor (great for writing)
+    - **Split**: Side-by-side editor and preview (default)
+    - **Preview**: Full-width preview (great for reading)
+
+    ```typescript src/scripts/view-mode.ts
+    export type ViewMode = "split" | "editor" | "preview"
+
+    function setViewMode(mode: ViewMode) {
+      editorRoot.setAttribute("data-view", mode)
+      viewEditorBtn?.classList.toggle("active", mode === "editor")
+      viewSplitBtn?.classList.toggle("active", mode === "split")
+      viewPreviewBtn?.classList.toggle("active", mode === "preview")
+    }
+    ```
+
+    <Note>
+      On mobile devices (width < 640px), CodeInk automatically defaults to editor-only mode.
+    </Note>
+  </Step>
+
+  <Step title="Export your document">
+    Click the "Export" button in the toolbar to download your document as a `.md` file.
+
+    The filename is automatically generated from your document's title (the first `# Heading`).
+
+    ```typescript src/scripts/export.ts
+    const content = getEditorContent()
+    const titleMatch = content.match(/^#\s+(.+)$/m)
+    const title = titleMatch ? titleMatch[1].trim() : "document"
+    const sanitized = title.replace(/[^a-z0-9\s-]/gi, "").replace(/\s+/g, "-")
+    const filename = `${sanitized}.md`
+
+    const blob = new Blob([content], { type: "text/markdown;charset=utf-8" })
+    // ... create download link
+    ```
+
+    <Tip>
+      Use a clear, descriptive first heading like `# Project Requirements` so your exported file has a meaningful name like `project-requirements.md`.
+    </Tip>
+  </Step>
+</Steps>
+
+## Managing documents
+
+All your documents are listed on the [documents page](https://codeink.app/documents). Here's what you can do:
+
+### View all documents
+
+Documents are sorted by last modified date (most recent first). Each card shows:
+- Document title (extracted from first heading)
+- Content preview (first 100 characters)
+- Last modified time (relative, e.g., "2h ago")
+
+```typescript src/scripts/documents.ts
+function formatRelativeTime(ts: number): string {
+  const diff = Date.now() - ts
+  if (diff < 60000) return "Just now"
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
+  if (diff < 604800000) return `${Math.floor(diff / 86400000)}d ago`
+  return new Date(ts).toLocaleDateString()
+}
+```
+
+### Rename a document
+
+Hover over a document card and click the pencil icon. Type a new title (max 20 characters) and press Enter.
+
+```typescript src/scripts/documents.ts
+function handleRename(wrapper: HTMLElement, id: string, rerender: () => void) {
+  const h3 = wrapper.querySelector(".doc-title") as HTMLElement
+  const currentTitle = h3.textContent || ""
+  const input = document.createElement("input")
+  input.type = "text"
+  input.value = currentTitle
+  input.maxLength = MAX_TITLE_LENGTH // 20 characters
+  
+  // ... handle input and save
+}
+```
+
+<Warning>
+  Custom titles are limited to 20 characters. If you don't set a custom title, CodeInk uses the first heading from your document.
+</Warning>
+
+### Delete a document
+
+Hover over a document card and click the trash icon. Confirm the deletion in the browser prompt.
+
+```typescript src/scripts/documents.ts
+async function handleDelete(id: string, rerender: () => void) {
+  if (!confirm("Delete this document?")) return
+  await deleteDoc(id)
+  rerender()
+}
+```
+
+<Danger>
+  Deleted documents cannot be recovered. CodeInk does not have a trash or recycle bin.
+</Danger>
+
+### Create a new document
+
+Click the "Create new document" button on the documents page. CodeInk generates a unique UUID and loads the editor with example content.
+
+## Using markdown linting
+
+CodeInk includes real-time Markdown linting powered by remark-lint.
+
+### View lint diagnostics
+
+Lint issues appear as:
+- Wavy underlines in the editor
+- A count in the status bar (e.g., "3 issues")
+
+Hover over an underlined section to see the specific issue.
+
+### Auto-fix issues
+
+Click the "Fix" button in the status bar to automatically fix common issues:
+- Missing spaces after heading markers (e.g., `#Heading` → `# Heading`)
+- Inconsistent list markers
+- Inconsistent emphasis markers
+- Extra blank lines
+
+```typescript src/scripts/markdown-linter.ts
+export function fixMarkdown(text: string): string {
+  try {
+    const file = processor.processSync(text)
+    return file.toString()
+  } catch (err) {
+    console.error("Markdown fix failed", err)
+    return text
+  }
+}
+```
+
+<Tip>
+  The auto-fix feature uses remark-stringify to reformat your Markdown with consistent style: `-` for bullet lists, `_` for emphasis, `*` for strong, and `-` for horizontal rules.
+</Tip>
+
+## Keyboard shortcuts
+
+CodeInk leverages CodeMirror 6's built-in keyboard shortcuts:
+
+| Shortcut | Action |
+|----------|--------|
+| `Cmd/Ctrl + B` | Bold selection |
+| `Cmd/Ctrl + I` | Italic selection |
+| `Cmd/Ctrl + Z` | Undo |
+| `Cmd/Ctrl + Shift + Z` | Redo |
+| `Cmd/Ctrl + F` | Find |
+| `Cmd/Ctrl + H` | Find and replace |
+| `Tab` | Indent line/selection |
+| `Shift + Tab` | Outdent line/selection |
+
+<Info>
+  CodeMirror automatically handles most common editing operations. Full keyboard shortcut documentation is available in the [CodeMirror 6 docs](https://codemirror.net/docs/ref/#commands).
+</Info>
+
+## Privacy and data storage
+
+CodeInk is designed with privacy as a core principle:
+
+<CardGroup cols={2}>
+  <Card title="100% client-side" icon="shield">
+    All Markdown processing, rendering, and storage happens in your browser. No data is ever sent to a server.
+  </Card>
+  <Card title="IndexedDB storage" icon="database">
+    Documents are stored in your browser's IndexedDB. They persist across sessions but are limited to one browser.
+  </Card>
+  <Card title="No tracking" icon="eye-slash">
+    Zero analytics, zero cookies, zero tracking scripts. CodeInk doesn't know you exist.
+  </Card>
+  <Card title="No accounts" icon="user-slash">
+    No signup, no login, no passwords. Your documents are tied to your browser, not to an account.
+  </Card>
+</CardGroup>
+
+### Storage limits
+
+<Warning>
+  IndexedDB storage is subject to browser quota limits (typically 50% of available disk space). If you hit the limit, you'll need to delete old documents or export them as files.
+</Warning>
+
+### Clearing data
+
+To delete all CodeInk data:
+1. Open browser DevTools (F12)
+2. Go to Application → Storage
+3. Find "IndexedDB" → "codeink-docs"
+4. Right-click and select "Delete database"
+
+Alternatively, clear all site data for CodeInk in your browser settings.
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
+Now that you know the basics, explore more features:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Mermaid diagrams" icon="diagram-project" href="/features/mermaid-diagrams">
+    Learn all Mermaid diagram types with examples
+  </Card>
+  <Card title="KaTeX math" icon="square-root-variable" href="/features/katex-math">
+    Master LaTeX math syntax for equations and formulas
+  </Card>
+  <Card title="Document management" icon="folder" href="/guides/document-management">
+    Learn how to organize and manage your documents
+  </Card>
+  <Card title="GitHub repository" icon="github" href="https://github.com/jorgefl8/CodeInk">
+    Contribute to CodeInk or report issues
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

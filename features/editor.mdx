@@ -1,0 +1,222 @@
+---
+title: 'CodeMirror 6 Editor'
+description: 'Professional code editing powered by CodeMirror 6 with syntax highlighting, line numbers, and advanced features'
+---
+
+## Overview
+
+CodeInk uses **CodeMirror 6**, a modern code editor built from the ground up for extensibility and performance. The editor provides a familiar, powerful interface for writing and editing markdown documents.
+
+## Core Features
+
+### Basic Setup
+
+The editor is initialized with a comprehensive set of features through the `basicSetup` extension:
+
+```typescript
+import { basicSetup } from "codemirror"
+import { markdown } from "@codemirror/lang-markdown"
+import { EditorState } from "@codemirror/state"
+import { EditorView } from "@codemirror/view"
+
+const state = EditorState.create({
+  doc: initialDoc,
+  extensions: [
+    basicSetup,
+    markdown({ addKeymap: true }),
+    // Additional extensions...
+  ],
+})
+
+const view = new EditorView({ state, parent })
+```
+
+<Note>
+The `basicSetup` includes line numbers, bracket matching, search/replace, and undo/redo out of the box.
+</Note>
+
+### Markdown Language Support
+
+CodeInk includes full markdown language support with intelligent keymaps:
+
+```typescript
+markdown({
+  addKeymap: true,
+})
+```
+
+This enables:
+- Markdown-aware syntax highlighting
+- Smart indentation
+- Keyboard shortcuts for common markdown operations
+- Context-aware completions
+
+## Theme System
+
+### Dynamic Theme Switching
+
+The editor supports both light and dark themes that can be switched dynamically without reloading:
+
+<Tabs>
+  <Tab title="Light Theme">
+    Custom light theme using CSS variables for seamless integration:
+
+    ```typescript
+    const lightTheme = EditorView.theme(
+      {
+        "&": {
+          backgroundColor: "var(--background)",
+          color: "var(--foreground)",
+        },
+        ".cm-content": {
+          caretColor: "var(--primary)",
+        },
+        ".cm-gutters": {
+          backgroundColor: "var(--surface)",
+          color: "var(--muted-foreground)",
+          borderRight: "1px solid var(--border)",
+        },
+        ".cm-activeLineGutter": {
+          backgroundColor: "color-mix(in srgb, var(--primary) 12%, transparent)",
+        },
+        ".cm-activeLine": {
+          backgroundColor: "color-mix(in srgb, var(--primary) 6%, transparent)",
+        },
+      },
+      { dark: false },
+    )
+    ```
+  </Tab>
+  <Tab title="Dark Theme">
+    Uses the popular OneDark theme:
+
+    ```typescript
+    import { oneDark } from "@codemirror/theme-one-dark"
+    
+    // Applied dynamically based on system/user preference
+    const darkTheme = oneDark
+    ```
+  </Tab>
+</Tabs>
+
+### Runtime Theme Updates
+
+Themes can be changed without recreating the editor using compartments:
+
+```typescript
+import { Compartment } from "@codemirror/state"
+
+const themeCompartment = new Compartment()
+
+// Initialize with theme
+themeCompartment.of(getEditorThemeExtension(theme))
+
+// Update theme dynamically
+function setEditorTheme(theme: "light" | "dark") {
+  editorView.dispatch({
+    effects: themeCompartment.reconfigure(getEditorThemeExtension(theme)),
+  })
+}
+```
+
+## Real-time Updates
+
+### Document Change Events
+
+The editor emits custom events whenever content changes:
+
+```typescript
+EditorView.updateListener.of((update) => {
+  if (update.docChanged) {
+    window.dispatchEvent(
+      new CustomEvent("editor-change", {
+        detail: { content: update.state.doc.toString() },
+      })
+    )
+  }
+})
+```
+
+This enables:
+- Live preview updates
+- Auto-save functionality
+- Real-time collaboration features
+
+### Content Management
+
+Access and modify editor content programmatically:
+
+```typescript
+// Get current content
+function getEditorContent(): string {
+  return editorView?.state.doc.toString() ?? ""
+}
+
+// Set new content
+function setEditorContent(content: string) {
+  editorView.dispatch({
+    changes: {
+      from: 0,
+      to: editorView.state.doc.length,
+      insert: content,
+    },
+  })
+}
+```
+
+## Performance
+
+### Efficient Document Model
+
+CodeMirror 6 uses a sophisticated document model that:
+- Handles documents of any size efficiently
+- Updates only changed portions of the DOM
+- Maintains smooth scrolling even with syntax highlighting
+
+### Lazy Loading
+
+The editor initializes quickly by deferring non-critical features:
+
+```typescript
+// Editor created immediately
+const editorView = new EditorView({ state, parent })
+
+// Preview and other features initialize separately
+await renderPreview(initialContent, previewEl)
+```
+
+## Integration Points
+
+### Lint Integration
+
+See [Markdown Linting](/features/markdown-linting) for details on how the editor integrates with remark-lint.
+
+### Auto-save
+
+Changes are automatically saved with a debounce delay:
+
+```typescript
+const AUTO_SAVE_DEBOUNCE_MS = 1000
+
+window.addEventListener("editor-change", (e) => {
+  // Clear existing timer
+  if (autoSaveTimer) clearTimeout(autoSaveTimer)
+  
+  // Schedule save
+  autoSaveTimer = setTimeout(async () => {
+    await saveDoc(doc)
+  }, AUTO_SAVE_DEBOUNCE_MS)
+})
+```
+
+## Source Code Reference
+
+Implementation details can be found in:
+- `/src/scripts/codemirror-setup.ts` - Editor initialization and configuration
+- `/src/scripts/editor.ts` - Main editor controller and auto-save logic
+
+## Related Features
+
+- [Syntax Highlighting](/features/syntax-highlighting) - Shiki integration for code blocks
+- [Markdown Linting](/features/markdown-linting) - Real-time linting with remark
+- [Mermaid Diagrams](/features/mermaid-diagrams) - Diagram rendering in preview

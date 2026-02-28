@@ -1,0 +1,382 @@
+---
+title: 'Markdown Linting'
+description: 'Real-time markdown validation and auto-fix powered by remark-lint with smart heading corrections'
+---
+
+## Overview
+
+CodeInk includes **remark-lint** integration for real-time markdown validation. The linter helps maintain consistent, high-quality markdown with automatic fixes for common issues.
+
+## Features
+
+### Real-Time Linting
+
+Linting occurs as you type with a configurable delay:
+
+```typescript
+import { linter } from "@codemirror/lint"
+import { markdownLint } from "@/scripts/markdown-linter"
+
+const state = EditorState.create({
+  extensions: [
+    linter(markdownLint, { delay: 500 }),
+    // Other extensions...
+  ],
+})
+```
+
+<Note>
+The 500ms delay prevents excessive linting while typing, improving performance without sacrificing responsiveness.
+</Note>
+
+### Visual Indicators
+
+Lint issues are shown directly in the editor:
+- Warnings highlighted with underlines
+- Hover tooltips with issue descriptions
+- Error count in the status bar
+
+### One-Click Auto-Fix
+
+Many issues can be automatically corrected:
+
+```typescript
+import { fixMarkdown } from "@/scripts/markdown-linter"
+
+fixBtn.addEventListener("click", () => {
+  const content = getEditorContent()
+  const fixed = fixMarkdown(content)
+  if (fixed !== content) setEditorContent(fixed)
+})
+```
+
+## Lint Rules
+
+### Recommended Preset
+
+CodeInk uses the remark recommended preset:
+
+```typescript
+import remarkPresetLintRecommended from "remark-preset-lint-recommended"
+
+const processor = unified()
+  .use(remarkParse)
+  .use(remarkPresetLintRecommended)
+```
+
+This includes rules for:
+- Consistent list markers
+- Proper heading structure
+- Link reference validation
+- Code block formatting
+- And more...
+
+### Custom Rules
+
+#### Undefined References
+
+Detects broken link references with custom allowances:
+
+```typescript
+import remarkLintNoUndefinedReferences from "remark-lint-no-undefined-references"
+
+.use(remarkLintNoUndefinedReferences, {
+  allow: [/^!/, "x", "X", " "],
+})
+```
+
+This allows:
+- Alert syntax (`!NOTE`, `!WARNING`, etc.)
+- Task list checkboxes (`[x]`, `[X]`, `[ ]`)
+
+#### Smart Heading Corrections
+
+Custom plugin to fix headings without spaces:
+
+```typescript
+// Transforms:
+// #Heading -> # Heading
+// ##BadHeading -> ## BadHeading
+
+function remarkSmartHeadings() {
+  return (tree: any) => {
+    visit(tree, "paragraph", (node, index, parent) => {
+      const firstChild = node.children[0]
+      if (firstChild.type === "text" && firstChild.value) {
+        const textValue = firstChild.value
+        
+        if (!textValue.startsWith("#")) return
+        
+        // Count hashes
+        let hashCount = 0
+        while (hashCount < textValue.length && textValue[hashCount] === "#") {
+          hashCount++
+        }
+        
+        if (hashCount > 6 || hashCount === 0) return
+        
+        const charAfter = textValue[hashCount]
+        if (!charAfter || /\s/.test(charAfter)) return
+        
+        // Fix: Convert paragraph to heading
+        const headingText = textValue.slice(hashCount)
+        const headingNode = {
+          type: "heading",
+          depth: hashCount,
+          children: [{ type: "text", value: headingText }],
+        }
+        
+        parent.children[index] = headingNode
+      }
+    })
+  }
+}
+```
+
+<Tip>
+This plugin runs before other lint rules, so the fixed structure is validated by subsequent rules.
+</Tip>
+
+## Auto-Fix Configuration
+
+### Stringify Options
+
+Fixed markdown uses consistent formatting:
+
+```typescript
+import remarkStringify from "remark-stringify"
+
+.use(remarkStringify, {
+  bullet: "-",           // Use - for unordered lists
+  emphasis: "_",         // Use _ for emphasis
+  strong: "*",           // Use * for strong
+  listItemIndent: "one", // Single space indent
+  rule: "-",             // Use - for horizontal rules
+})
+```
+
+### What Gets Fixed
+
+<Tabs>
+  <Tab title="Lists">
+    - Inconsistent bullet markers → unified `-`
+    - Irregular indentation → standardized spacing
+    - Missing blank lines → added where needed
+  </Tab>
+  <Tab title="Headings">
+    - Missing spaces after `#` → spaces added
+    - Inconsistent ATX style → normalized
+    - Invalid heading levels → corrected
+  </Tab>
+  <Tab title="Links">
+    - Broken reference definitions → fixed or removed
+    - Inconsistent formatting → standardized
+  </Tab>
+  <Tab title="Code Blocks">
+    - Inconsistent fence markers → unified
+    - Missing language identifiers → preserved
+  </Tab>
+</Tabs>
+
+## Integration with CodeMirror
+
+### Diagnostic Conversion
+
+Remark messages are converted to CodeMirror diagnostics:
+
+```typescript
+export function markdownLint(view: EditorView): Diagnostic[] {
+  const doc = view.state.doc
+  const text = doc.toString()
+  const diagnostics: Diagnostic[] = []
+
+  try {
+    const file = processor.processSync(text)
+
+    for (const msg of file.messages) {
+      let from = 0
+      let to = 0
+
+      if (msg.place && "start" in msg.place && "end" in msg.place) {
+        // Use offset if available
+        if (typeof msg.place.start.offset === 'number') {
+          from = msg.place.start.offset
+          to = msg.place.end.offset
+        } else {
+          // Calculate from line/column
+          const startLineObj = doc.line(msg.place.start.line)
+          from = startLineObj.from + (msg.place.start.column - 1)
+          
+          const endLineObj = doc.line(msg.place.end.line)
+          to = endLineObj.from + (msg.place.end.column - 1)
+        }
+      }
+
+      diagnostics.push({
+        from,
+        to,
+        severity: msg.fatal === true ? "error" : "warning",
+        message: msg.message,
+        source: "remark-lint",
+      })
+    }
+  } catch (err) {
+    console.error("Markdown linting failed", err)
+  }
+
+  return diagnostics
+}
+```
+
+### Position Calculation
+
+Remark uses 1-indexed line/column numbers, CodeMirror uses 0-indexed offsets:
+
+```typescript
+// Convert 1-indexed column to 0-indexed offset
+const startLineObj = doc.line(startLine)
+from = startLineObj.from + (startCol - 1)
+```
+
+### Error Handling
+
+Position calculation is wrapped in try-catch to handle edge cases:
+
+```typescript
+try {
+  // Calculate positions
+} catch (e) {
+  console.error("Error calculating position for lint message", e)
+  continue // Skip this diagnostic
+}
+```
+
+## Status Bar Integration
+
+### Lint Counter
+
+The status bar shows the current error count:
+
+```typescript
+EditorView.updateListener.of((update) => {
+  const prevCount = diagnosticCount(update.startState)
+  const currCount = diagnosticCount(update.state)
+  
+  if (prevCount !== currCount) {
+    window.dispatchEvent(
+      new CustomEvent("lint-update", { 
+        detail: { count: currCount } 
+      })
+    )
+  }
+})
+```
+
+### Fix Button State
+
+The fix button is only shown when there are issues:
+
+```typescript
+function setupLintStatusManager(lintEl, fixBtn) {
+  return (count: number) => {
+    if (count > 0) {
+      lintEl.classList.add("has-issues")
+      fixBtn.style.display = "block"
+    } else {
+      lintEl.classList.remove("has-issues")
+      fixBtn.style.display = "none"
+    }
+  }
+}
+```
+
+## Unified Pipeline
+
+### Processor Architecture
+
+A single unified processor handles both linting and fixing:
+
+```typescript
+const processor = unified()
+  .use(remarkParse)              // Parse markdown to AST
+  .use(remarkSmartHeadings)      // Custom transformations
+  .use(remarkPresetLintRecommended) // Apply lint rules
+  .use(remarkLintNoUndefinedReferences) // Additional rules
+  .use(remarkStringify)          // Serialize AST back to markdown
+```
+
+### Synchronous Processing
+
+Linting is synchronous for immediate feedback:
+
+```typescript
+const file = processor.processSync(text)
+```
+
+<Note>
+Synchronous processing works because remark plugins are synchronous. The markdown parser is fast enough for real-time linting.
+</Note>
+
+## Performance Optimization
+
+### Debounced Linting
+
+The linter only runs after you stop typing:
+
+```typescript
+linter(markdownLint, { delay: 500 })
+```
+
+### Efficient Position Lookups
+
+CodeMirror's `doc.line()` method is O(log n):
+
+```typescript
+const lineObj = doc.line(lineNumber) // Fast binary search
+const offset = lineObj.from + columnOffset
+```
+
+### Minimal Re-processing
+
+Only the changed document is linted, not the entire project.
+
+## Example Lint Messages
+
+### Common Warnings
+
+<CodeGroup>
+```txt Warning: List markers
+Use a consistent list marker (remark-lint:list-item-bullet-indent)
+```
+
+```txt Warning: Heading style
+Headings should increment by one level at a time (remark-lint:heading-increment)
+```
+
+```txt Warning: Link references
+Found reference to undefined definition (remark-lint:no-undefined-references)
+```
+
+```txt Warning: Empty links
+Found empty link (remark-lint:no-empty-url)
+```
+</CodeGroup>
+
+## Source Code Reference
+
+Implementation details can be found in:
+- `/src/scripts/markdown-linter.ts` - Complete linting and auto-fix logic
+- `/src/scripts/codemirror-setup.ts` - Linter integration with CodeMirror
+- `/src/scripts/editor.ts` - Status bar and fix button handling
+
+## Related Features
+
+- [CodeMirror Editor](/features/editor) - Editor integration
+- [Syntax Highlighting](/features/syntax-highlighting) - Code block validation
+- [Markdown Preview](/features/editor) - Live preview of valid markdown
+
+## Learn More
+
+For complete rule documentation:
+- [remark-lint rules](https://github.com/remarkjs/remark-lint#rules)
+- [remark-preset-lint-recommended](https://github.com/remarkjs/remark-lint/tree/main/packages/remark-preset-lint-recommended)
