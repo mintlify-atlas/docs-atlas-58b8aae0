@@ -1,0 +1,94 @@
+{
+  "projectType": "saas",
+  "projectName": "CodeInk",
+  "projectDescription": "A polished markdown editor with real-time preview, syntax highlighting, diagrams and math.",
+  "theme": "palm",
+  "primaryColor": "#F59E0B",
+  "lightColor": "#FEF3C7",
+  "darkColor": "#92400E",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/editor",
+              "features/syntax-highlighting",
+              "features/mermaid-diagrams",
+              "features/katex-math",
+              "features/markdown-linting"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/document-management",
+              "guides/view-modes",
+              "guides/keyboard-shortcuts",
+              "guides/exporting"
+            ]
+          },
+          {
+            "group": "Privacy & Security",
+            "pages": [
+              "privacy/data-storage",
+              "privacy/offline-support"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Development",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "development/setup",
+              "development/architecture"
+            ]
+          },
+          {
+            "group": "Contributing",
+            "pages": [
+              "development/contributing",
+              "development/code-structure"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Real-time Markdown preview with split-pane editor",
+    "Mermaid diagrams support (flowcharts, sequence, ER, Gantt, class diagrams)",
+    "KaTeX math rendering (inline and display mode)",
+    "Syntax highlighting for 16+ languages via Shiki",
+    "Markdown linting with one-click auto-fix via remark-lint",
+    "100% client-side with zero tracking and zero accounts",
+    "Local document storage via IndexedDB",
+    "Multiple view modes (editor, split, preview)",
+    "GitHub-style alerts (NOTE, TIP, IMPORTANT, WARNING, CAUTION)",
+    "Full GFM support with tables and footnotes"
+  ],
+  "publicApiSurface": [
+    "Editor: CodeMirror 6-based Markdown editor",
+    "Preview: Real-time Markdown rendering engine",
+    "Document Management: CRUD operations via IndexedDB",
+    "Export: Markdown file export functionality",
+    "View Modes: editor, split, preview modes",
+    "Syntax Highlighting: Shiki with One Dark Pro theme",
+    "Mermaid Renderer: Diagram rendering via mermaid.js",
+    "KaTeX Renderer: Math expression rendering",
+    "Markdown Linter: remark-lint integration with auto-fix",
+    "Status Bar: Real-time document statistics (lines, words, chars)"
+  ]
+}
